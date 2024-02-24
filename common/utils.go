@@ -7,18 +7,18 @@ import (
 	"os"
 )
 
-func PrettyPrint(data interface{}) {
+func PrettyPrint(data interface{}) string {
 	var p []byte
 	p, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		return
+		return ""
 	}
-	fmt.Printf("%s \n\n", p)
+	return string(p)
 }
 
 func GetDbURL() (url string) {
-	jsonFile, err := os.Open("config.json")
+	jsonFile, err := os.Open("/Users/aryansharma/code/learning/tokeniser/config.json")
 	if err != nil {
 		fmt.Println(err)
 	}

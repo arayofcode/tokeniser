@@ -2,9 +2,13 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/arayofcode/tokeniser/models"
+	"log"
 	"os"
+
+	"github.com/arayofcode/tokeniser/common"
+	"github.com/arayofcode/tokeniser/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -22,7 +26,8 @@ import (
 
 // }
 
-func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Card) (results models.InsertCardResult) {
+func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult) {
+	log.Println("Inserting card details: \n" + common.PrettyPrint(card))
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -55,10 +60,12 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Card
 		CreatedAt: dbcard.CreatedAt.Time,
 		UpdatedAt: dbcard.UpdatedAt.Time,
 	}
+	log.Printf("Inserted successfully on row %d", results.ID)
 	return
 }
 
-func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token string) (creditCard models.Card) {
+func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow) {
+	log.Printf("Searching for token: %s", token)
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -81,8 +88,13 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token string
 		&dbcard.ExpirydateEncrypted,
 	)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		fmt.Fprintf(os.Stderr, "Error retrieving credit card details with token %s: %v\n", token, err)
+	}
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		log.Println("No card with such token")
+		return
 	}
 
 	creditCard.ID = dbcard.ID
@@ -94,10 +106,13 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token string
 	creditCard.ExpirydateEncrypted = dbcard.ExpirydateEncrypted
 	creditCard.CreatedAt = dbcard.CreatedAt.Time
 	creditCard.UpdatedAt = dbcard.UpdatedAt.Time
+
+	log.Printf("Found row %d for token %s", creditCard.ID, token)
 	return
 }
 
-func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token string) (deleted bool) {
+func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID) (deleted bool) {
+	log.Printf("Deleting card with token: %s", token)
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -120,10 +135,10 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token string) (d
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		fmt.Println("No rows were deleted.")
+		log.Println("No card found with given token")
 		return false
 	} else {
-		fmt.Printf("%d rows were deleted.\n", cmdTag.RowsAffected())
+		log.Printf("%d rows were deleted.", cmdTag.RowsAffected())
 	}
 
 	if err := transaction.Commit(ctx); err != nil {
@@ -134,7 +149,8 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token string) (d
 	return true
 }
 
-func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []models.Card) {
+func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []models.CreditCardRow) {
+	log.Printf("Finding all cards in DB")
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -166,9 +182,9 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 			return
 		}
 
-		var creditCard = models.Card{
+		var creditCard = models.CreditCardRow{
 			ID:                  cardRow.ID,
-			Token:               uuid.UUID(cardRow.Token.Bytes[:]),
+			Token:               uuid.UUID(cardRow.Token.Bytes),
 			CardHolderName:      cardRow.CardHolderName.String,
 			CardNumber:          cardRow.CardNumber.String,
 			ExpiryDate:          cardRow.ExpiryDate.String,
@@ -179,5 +195,6 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 		}
 		cards = append(cards, creditCard)
 	}
+	log.Printf("Found %d cards", len(cards))
 	return
 }

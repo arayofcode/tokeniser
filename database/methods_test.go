@@ -24,7 +24,7 @@ func configInit() {
 
 func TestInsert(t *testing.T) {
 	configInit()
-	results := dbconfig.InsertCard(ctx, models.Card{
+	results := dbconfig.InsertCard(ctx, models.CreditCardDetails{
 		CardHolderName:      "Test",
 		CardNumber:          "4111098712348484",
 		ExpiryDate:          "11/22",
@@ -33,17 +33,18 @@ func TestInsert(t *testing.T) {
 	})
 	assert.NotNil(t, results)
 	common.PrettyPrint(results)
+	dbconfig.DeleteCard(ctx, results.Token)
 }
 
 func TestRetrieve(t *testing.T) {
 	configInit()
-	card := models.Card{
-		CardHolderName:      "Test",
-		CardNumber:          "4111098712348484",
-		ExpiryDate:          "11/22",
+	card := models.CreditCardDetails{
+		CardHolderName: "Test",
+		CardNumber:     "4111098712348484",
+		ExpiryDate:     "11/22",
 	}
 	results := dbconfig.InsertCard(ctx, card)
-	searchResults := dbconfig.GetCardDetails(ctx, results.Token.String())
+	searchResults := dbconfig.GetCardDetails(ctx, results.Token)
 	common.PrettyPrint(searchResults)
 	assert.NotNil(t, results.CreatedAt)
 	assert.NotNil(t, results.UpdatedAt)
@@ -51,7 +52,7 @@ func TestRetrieve(t *testing.T) {
 	assert.Equal(t, card.CardHolderName, searchResults.CardHolderName)
 	assert.Equal(t, card.CardNumber, searchResults.CardNumber)
 	assert.Equal(t, card.ExpiryDate, searchResults.ExpiryDate)
-	assert.True(t, dbconfig.DeleteCard(ctx, results.Token.String()))
-	searchResults = dbconfig.GetCardDetails(ctx, results.Token.String())
+	assert.True(t, dbconfig.DeleteCard(ctx, results.Token))
+	searchResults = dbconfig.GetCardDetails(ctx, results.Token)
 	assert.Zero(t, searchResults.ID)
 }

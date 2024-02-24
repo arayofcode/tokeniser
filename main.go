@@ -1,14 +1,13 @@
 package main
 
 import (
-	// "net/http"
-
-	"context"
+	// "context"
 	"fmt"
 	"net/http"
 
-	"github.com/arayofcode/tokeniser/common"
-	"github.com/arayofcode/tokeniser/database"
+	// "github.com/arayofcode/tokeniser/common"
+	// "github.com/arayofcode/tokeniser/database"
+	// "github.com/arayofcode/tokeniser/handler"
 	"github.com/arayofcode/tokeniser/models"
 
 	"github.com/gin-gonic/gin"
@@ -85,18 +84,23 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	ctx := context.Background()
-	databaseUrl := common.GetDbURL()
-	dbconfig := database.DatabaseInit(databaseUrl)
-	results := dbconfig.TempShowCards(ctx)
-	fmt.Printf("%+v\n", results)
+	// ctx := context.Background()
 
-	// r := setupRouter()
-	// r.Run(":8080")
+	// db := database.DatabaseInit(common.GetDbURL())
+	// newHandler := handler.NewHandler(db)
+	// databaseUrl := common.GetDbURL()
+	// dbconfig := database.DatabaseInit(databaseUrl)
+	// results := dbconfig.TempShowCards(ctx)
+	// fmt.Printf("%+v\n", results)
+
+	r := setupRouter()
+	r.Run(":8080")
 }
 
 /*
 Possible Idempotency:
 - Request with same payload sent again
 - Same key-value pair sent again. Should we generate new tokens in this case? Think about same names of two different people
+
+User --> API --> Handler --> Database
 */
