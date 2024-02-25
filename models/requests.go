@@ -11,7 +11,17 @@ type Payload struct {
 	Data map[string]string `json:"data"`
 }
 
-type NewPayload struct {
+type TokenisePayload struct {
+	ID   int               `json:"id"`
+	Card CreditCardDetails `json:"card"`
+}
+
+type DetokenisePayload struct {
+	ID    int       `json:"id"`
+	Token uuid.UUID `json:"token"`
+}
+
+type DetokeniseCardResponse struct {
 	ID   int               `json:"id"`
 	Card CreditCardDetails `json:"card"`
 }
@@ -23,16 +33,16 @@ type InsertCardResult struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type TokenizeCardResponse struct {
+type TokeniseCardResponse struct {
 	InsertCardResult
 }
 
-type DeTokenizeResponseData struct {
+type DeTokeniseResponseData struct {
 	Found bool   `json:"found"`
 	Value string `json:"value"`
 }
 
-type DeTokenizeResponse struct {
+type DeTokeniseResponse struct {
 	ID   int                               `json:"id"`
-	Data map[string]DeTokenizeResponseData `json:"data"`
+	Data map[string]DeTokeniseResponseData `json:"data"`
 }

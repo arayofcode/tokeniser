@@ -27,7 +27,7 @@ func configInit() {
 func TestHandlerTokeniseNew(t *testing.T) {
 	configInit()
 	newHandler := handler.NewHandler(dbconfig)
-	newPayload := models.NewPayload{
+	newPayload := models.TokenisePayload{
 		ID: 12345,
 		Card: models.CreditCardDetails{
 			CardHolderName: "Test David",
@@ -44,7 +44,7 @@ func TestHandlerTokeniseNew(t *testing.T) {
 func TestHandleDetokeniseNew(t *testing.T) {
 	configInit()
 	newHandler := handler.NewHandler(dbconfig)
-	newPayload := models.NewPayload{
+	newPayload := models.TokenisePayload{
 		ID: 12345,
 		Card: models.CreditCardDetails{
 			CardHolderName: "Test David",
@@ -53,8 +53,8 @@ func TestHandleDetokeniseNew(t *testing.T) {
 		},
 	}
 	tokeniseResults := newHandler.HandleTokeniseNew(ctx, newPayload)
-	detokeniseResults := newHandler.HandleDetokeniseNew(ctx, tokeniseResults.Token)
-	assert.Equal(t, newPayload.Card.CardHolderName, detokeniseResults.CardHolderName)
-	assert.Equal(t, newPayload.Card.CardNumber, detokeniseResults.CardNumber)
-	assert.Equal(t, newPayload.Card.ExpiryDate, detokeniseResults.ExpiryDate)
+	detokeniseResults := newHandler.HandleDetokeniseNew(ctx, models.DetokenisePayload{ID: newPayload.ID, Token: tokeniseResults.Token})
+	assert.Equal(t, newPayload.Card.CardHolderName, detokeniseResults.Card.CardHolderName)
+	assert.Equal(t, newPayload.Card.CardNumber, detokeniseResults.Card.CardNumber)
+	assert.Equal(t, newPayload.Card.ExpiryDate, detokeniseResults.Card.ExpiryDate)
 }

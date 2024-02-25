@@ -14,18 +14,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// func (dbConfig *databaseConfig) InsertPII(ctx context.Context, person models.Person) {
-// 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
-// 	if err != nil {
-// 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-// 		os.Exit(1)
-// 	}
-// 	defer conn.Close(ctx)
-
-// 	conn.Query(ctx, "INSERT INTO person")
-
-// }
-
 func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult) {
 	log.Println("Inserting card details: \n" + common.PrettyPrint(card))
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
@@ -36,12 +24,10 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	defer conn.Close(ctx)
 
 	var dbcard insertCardResult
-	err = conn.QueryRow(ctx, "INSERT INTO credit_cards (cardholder_name, card_number, expiry_date, card_number_encrypted, expiry_date_encrypted) VALUES ($1, $2, $3, $4, $5) RETURNING id, token, created_at, updated_at",
+	err = conn.QueryRow(ctx, "INSERT INTO credit_cards (cardholder_name, card_number, expiry_date) VALUES ($1, $2, $3) RETURNING id, token, created_at, updated_at",
 		card.CardHolderName,
 		card.CardNumber,
 		card.ExpiryDate,
-		card.CardNumberEncrypted,
-		card.ExpirydateEncrypted,
 	).Scan(
 		&dbcard.ID,
 		&dbcard.Token,

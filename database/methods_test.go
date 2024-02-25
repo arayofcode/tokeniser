@@ -25,11 +25,9 @@ func configInit() {
 func TestInsert(t *testing.T) {
 	configInit()
 	results := dbconfig.InsertCard(ctx, models.CreditCardDetails{
-		CardHolderName:      "Test",
-		CardNumber:          "4111098712348484",
-		ExpiryDate:          "11/22",
-		ExpirydateEncrypted: []byte{},
-		CardNumberEncrypted: []byte{},
+		CardHolderName: "Test",
+		CardNumber:     "4111098712348484",
+		ExpiryDate:     "11/22",
 	})
 	assert.NotNil(t, results)
 	common.PrettyPrint(results)
@@ -52,6 +50,8 @@ func TestRetrieve(t *testing.T) {
 	assert.Equal(t, card.CardHolderName, searchResults.CardHolderName)
 	assert.Equal(t, card.CardNumber, searchResults.CardNumber)
 	assert.Equal(t, card.ExpiryDate, searchResults.ExpiryDate)
+
+	// No need to test delete because it's already happening
 	assert.True(t, dbconfig.DeleteCard(ctx, results.Token))
 	searchResults = dbconfig.GetCardDetails(ctx, results.Token)
 	assert.Zero(t, searchResults.ID)
