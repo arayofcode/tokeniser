@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -55,46 +56,70 @@ func TestHandleTokenise(t *testing.T) {
 	{
 		"request_id": "req-12345",
 		"card": {
-        	"cardholder_name" : "Aryan",
-			"card_number": "1123123412344321",
+        	"cardholder_name" : "Test",
+			"card_number": "4000056655665556",
 			"expiry_date": "12/24"
 		}
 	}
 	`
-
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
+	
 	var result models.TokeniseCardResponse
 	err := json.Unmarshal(w.Body.Bytes(), &result)
+	
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, w.Code)
 	err = uuid.Validate(result.Token.String())
 	assert.NoError(t, err)
+	
 	db.DeleteCard(context.TODO(), result.Token)
 }
 
 func TestHandleDetokenise(t *testing.T) {
 	configInit()
 
+	// Creating mock row and generating token
 	payload := `
 	{
 		"request_id": "req-12345",
-		"token": "e9b6bfe9-09d7-4903-88b0-0f595d8141c0"
+		"card": {
+        	"cardholder_name" : "Test_name",
+			"card_number": "4000056655665556",
+			"expiry_date": "12/24"
+		}
 	}
 	`
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/detokenise", bytes.NewBufferString(payload))
+	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
+	
+	var createResult models.TokeniseCardResponse
+	_ = json.Unmarshal(w.Body.Bytes(), &createResult)
+
+	// Detokenising
+	payload = fmt.Sprintf(`
+	{
+		"request_id": "req-12345",
+		"token": "%s"
+	}`, createResult.Token)
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/detokenise", bytes.NewBufferString(payload))
+	req.Header.Set("Content-Type", "application/json")
+	testRouter.ServeHTTP(w, req)
+	
 	var result models.DetokeniseCardResponse
 	err := json.Unmarshal(w.Body.Bytes(), &result)
+	
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusFound, w.Code)
 	assert.Equal(t, "Aryan", result.Card.CardHolderName)
-	assert.Equal(t, "1123123412344321", result.Card.CardNumber)
+	assert.Equal(t, "4000056655665556", result.Card.CardNumber)
 	assert.Equal(t, "12/24", result.Card.ExpiryDate)
-	uuidStr, _ := uuid.Parse("e9b6bfe9-09d7-4903-88b0-0f595d8141c0")
-	db.DeleteCard(context.TODO(), uuidStr)
+	
+	db.DeleteCard(context.TODO(), createResult.Token)
 }

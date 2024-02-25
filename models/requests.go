@@ -7,13 +7,13 @@ import (
 )
 
 type TokenisePayload struct {
-	RequestID string            `json:"request_id"`
-	Card      CreditCardDetails `json:"card"`
+	RequestID string            `json:"request_id" binding:"required"`
+	Card      CreditCardDetails `json:"card" binding:"required"`
 }
 
 type DetokenisePayload struct {
-	RequestID string    `json:"request_id"`
-	Token     uuid.UUID `json:"token"`
+	RequestID string    `json:"request_id" binding:"required" validate:"nonzero"`
+	Token     uuid.UUID `json:"token" binding:"required,uuid4" validate:"nonzero"`
 }
 
 type DetokeniseCardResponse struct {

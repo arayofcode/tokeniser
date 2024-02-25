@@ -16,9 +16,9 @@ type CardInternalData struct {
 }
 
 type CreditCardDetails struct {
-	CardHolderName string `json:"cardholder_name"`
-	CardNumber     string `json:"card_number"`
-	ExpiryDate     string `json:"expiry_date"`
+	CardHolderName string `json:"cardholder_name" binding:"required" validate:"nonzero"`
+	CardNumber     string `json:"card_number" binding:"required,credit_card" validate:"notallzero"`
+	ExpiryDate     string `json:"expiry_date" binding:"required" validate:"expiry_date,nonzero"`
 }
 
 type CreditCardRow struct {
