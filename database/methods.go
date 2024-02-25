@@ -7,19 +7,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/arayofcode/tokeniser/common"
 	"github.com/arayofcode/tokeniser/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
-func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult) {
-	log.Println("Inserting card details: \n" + common.PrettyPrint(card))
+func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult, err error) {
+	log.Println("Inserting card details with request ID: \n" + results.RequestID)
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		return
+		return results, fmt.Errorf("database connection failed: %v", err)
 	}
 	defer conn.Close(ctx)
 
@@ -36,26 +34,25 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to insert card details: %v\n", err)
-		return
+		return results, fmt.Errorf("card insertion in database failed: %v", err)
 	}
 
 	results = models.InsertCardResult{
-		ID:        dbcard.ID,
+		RowID:     dbcard.ID,
 		Token:     uuid.UUID(dbcard.Token.Bytes),
 		CreatedAt: dbcard.CreatedAt.Time,
 		UpdatedAt: dbcard.UpdatedAt.Time,
 	}
-	log.Printf("Inserted successfully on row %d", results.ID)
+
+	log.Printf("Inserted successfully at timestamp %s", results.CreatedAt.String())
 	return
 }
 
-func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow) {
+func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow, err error) {
 	log.Printf("Searching for token: %s", token)
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		return
+		return creditCard, fmt.Errorf("database connection failed: %v", err)
 	}
 	defer conn.Close(ctx)
 
@@ -63,7 +60,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	err = conn.QueryRow(ctx, "SELECT id, token, cardholder_name, card_number, expiry_date, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards WHERE token=$1",
 		token,
 	).Scan(
-		&dbcard.ID,
+		&dbcard.RowID,
 		&dbcard.Token,
 		&dbcard.CardHolderName,
 		&dbcard.CardNumber,
@@ -75,7 +72,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		fmt.Fprintf(os.Stderr, "Error retrieving credit card details with token %s: %v\n", token, err)
+		return creditCard, fmt.Errorf("failed GetCreditCardDetails with token %s: %v", token, err)
 	}
 
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -83,7 +80,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 		return
 	}
 
-	creditCard.ID = dbcard.ID
+	creditCard.RowID = dbcard.RowID
 	creditCard.Token = dbcard.Token.Bytes
 	creditCard.CardHolderName = dbcard.CardHolderName.String
 	creditCard.CardNumber = dbcard.CardNumber.String
@@ -93,7 +90,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	creditCard.CreatedAt = dbcard.CreatedAt.Time
 	creditCard.UpdatedAt = dbcard.UpdatedAt.Time
 
-	log.Printf("Found row %d for token %s", creditCard.ID, token)
+	log.Println("Found! Returning details")
 	return
 }
 
@@ -135,24 +132,25 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID)
 	return true
 }
 
-func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []models.CreditCardRow) {
+func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []models.CreditCardRow, err error) {
 	log.Printf("Finding all cards in DB")
+
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		return
+		return cards, fmt.Errorf("database connection failed: %v", err)
 	}
 	defer conn.Close(ctx)
+
 	rows, err := conn.Query(ctx, "SELECT id, token, cardholder_name, card_number, expiry_date, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error while querying: %v\n", err)
-		return
+		return cards, fmt.Errorf("ShowAllCards query failed: %v", err)
 	}
 
 	for rows.Next() {
 		var cardRow card
 		err = rows.Scan(
-			&cardRow.ID,
+			&cardRow.RowID,
 			&cardRow.Token,
 			&cardRow.CardHolderName,
 			&cardRow.CardNumber,
@@ -164,12 +162,11 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 		)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error while parsing row: %v\n", err)
-			return
+			return cards, fmt.Errorf("parsing results row failed: %v", err)
 		}
 
 		var creditCard = models.CreditCardRow{
-			ID:                  cardRow.ID,
+			RowID:               cardRow.RowID,
 			Token:               uuid.UUID(cardRow.Token.Bytes),
 			CardHolderName:      cardRow.CardHolderName.String,
 			CardNumber:          cardRow.CardNumber.String,

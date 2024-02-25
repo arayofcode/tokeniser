@@ -7,7 +7,7 @@ import (
 )
 
 type CardInternalData struct {
-	ID                  int       `json:"id,omitempty" db:"id"`
+	RowID               int       `json:"id,omitempty" db:"id"`
 	Token               uuid.UUID `json:"token,omitempty" db:"token"`
 	CreatedAt           time.Time `json:"created_at,omitempty" db:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at,omitempty" db:"updated_at"`
@@ -22,7 +22,7 @@ type CreditCardDetails struct {
 }
 
 type CreditCardRow struct {
-	ID                  int       `json:"id,omitempty" db:"id"`
+	RowID               int       `json:"id,omitempty" db:"id"`
 	Token               uuid.UUID `json:"token,omitempty" db:"token"`
 	CreatedAt           time.Time `json:"created_at,omitempty" db:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at,omitempty" db:"updated_at"`

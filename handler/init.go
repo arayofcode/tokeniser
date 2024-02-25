@@ -8,8 +8,8 @@ import (
 )
 
 type Handler interface {
-	HandleTokeniseNew(ctx context.Context, payload models.TokenisePayload) (response models.TokeniseCardResponse)
-	HandleDetokeniseNew(ctx context.Context, payload models.DetokenisePayload) (response models.DetokeniseCardResponse)
+	HandleTokenise(ctx context.Context, payload models.TokenisePayload) (response models.TokeniseCardResponse, err error)
+	HandleDetokenise(ctx context.Context, payload models.DetokenisePayload) (response models.DetokeniseCardResponse, err error)
 }
 
 type HandlerData struct {

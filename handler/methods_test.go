@@ -28,14 +28,14 @@ func TestHandlerTokeniseNew(t *testing.T) {
 	configInit()
 	newHandler := handler.NewHandler(dbconfig)
 	newPayload := models.TokenisePayload{
-		ID: 12345,
+		RequestID: "12345",
 		Card: models.CreditCardDetails{
 			CardHolderName: "Test David",
 			CardNumber:     "4112123456780987",
 			ExpiryDate:     "11/22",
 		},
 	}
-	results := newHandler.HandleTokeniseNew(ctx, newPayload)
+	results, _ := newHandler.HandleTokenise(ctx, newPayload)
 	assert.NoError(t, uuid.Validate(results.Token.String()))
 	log.Println("Cleaning up the row")
 	assert.True(t, dbconfig.DeleteCard(ctx, results.Token))
@@ -45,15 +45,15 @@ func TestHandleDetokeniseNew(t *testing.T) {
 	configInit()
 	newHandler := handler.NewHandler(dbconfig)
 	newPayload := models.TokenisePayload{
-		ID: 12345,
+		RequestID: "12345",
 		Card: models.CreditCardDetails{
 			CardHolderName: "Test David",
 			CardNumber:     "4112123456780987",
 			ExpiryDate:     "11/22",
 		},
 	}
-	tokeniseResults := newHandler.HandleTokeniseNew(ctx, newPayload)
-	detokeniseResults := newHandler.HandleDetokeniseNew(ctx, models.DetokenisePayload{ID: newPayload.ID, Token: tokeniseResults.Token})
+	tokeniseResults, _ := newHandler.HandleTokenise(ctx, newPayload)
+	detokeniseResults, _ := newHandler.HandleDetokenise(ctx, models.DetokenisePayload{RequestID: newPayload.RequestID, Token: tokeniseResults.Token})
 	assert.Equal(t, newPayload.Card.CardHolderName, detokeniseResults.Card.CardHolderName)
 	assert.Equal(t, newPayload.Card.CardNumber, detokeniseResults.Card.CardNumber)
 	assert.Equal(t, newPayload.Card.ExpiryDate, detokeniseResults.Card.ExpiryDate)

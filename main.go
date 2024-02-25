@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"log"
 
 	"github.com/arayofcode/tokeniser/common"
 	"github.com/arayofcode/tokeniser/database"
@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
 	db := database.DatabaseInit(common.GetDbURL())
+	log.Println("Database connection successful")
 	dbHandler := handler.NewHandler(db)
-	api := router.NewRouter(ctx, dbHandler)
+	api := router.NewRouter(dbHandler)
+	log.Println("Starting the API")
 	api.StartAPI()
 }
 

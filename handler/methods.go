@@ -7,19 +7,22 @@ import (
 	"github.com/arayofcode/tokeniser/models"
 )
 
-func (h *HandlerData) HandleTokeniseNew(ctx context.Context, newPayload models.TokenisePayload) (response models.TokeniseCardResponse) {
-	insertCard := h.db.InsertCard(ctx, newPayload.Card)
-	response.ID = newPayload.ID
+func (h *HandlerData) HandleTokenise(ctx context.Context, newPayload models.TokenisePayload) (response models.TokeniseCardResponse, err error) {
+	insertCard, err := h.db.InsertCard(ctx, newPayload.Card)
+	response.RequestID = newPayload.RequestID
+	response.RowID = insertCard.RowID
 	response.Token = insertCard.Token
-	log.Printf("Generated token %s for card request ID: %d", response.Token, response.ID)
-	return response
+	response.CreatedAt = insertCard.CreatedAt
+	response.UpdatedAt = insertCard.UpdatedAt
+	log.Printf("Generated token %s for card request ID: %s", response.Token, response.RequestID)
+	return response, err
 }
 
-func (h *HandlerData) HandleDetokeniseNew(ctx context.Context, payload models.DetokenisePayload) (response models.DetokeniseCardResponse) {
-	cardDetails := h.db.GetCardDetails(ctx, payload.Token)
-	response.ID = payload.ID
+func (h *HandlerData) HandleDetokenise(ctx context.Context, payload models.DetokenisePayload) (response models.DetokeniseCardResponse, err error) {
+	cardDetails, err := h.db.GetCardDetails(ctx, payload.Token)
+	response.RequestID = payload.RequestID
 	response.Card.CardHolderName = cardDetails.CardHolderName
 	response.Card.CardNumber = cardDetails.CardNumber
 	response.Card.ExpiryDate = cardDetails.ExpiryDate
-	return
+	return response, err
 }
