@@ -14,7 +14,7 @@ import (
 )
 
 func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult, err error) {
-	log.Println("Inserting card details with request ID: \n" + results.RequestID)
+	log.Println("Inserting card details")
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
 		return results, fmt.Errorf("database connection failed: %v", err)
