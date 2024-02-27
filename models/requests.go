@@ -12,8 +12,8 @@ type TokenisePayload struct {
 }
 
 type DetokenisePayload struct {
-	RequestID string    `json:"request_id" binding:"required" validate:"nonzero"`
-	Token     uuid.UUID `json:"token" binding:"required,uuid4" validate:"nonzero"`
+	RequestID string    `json:"request_id" binding:"required"`
+	Token     uuid.UUID `json:"token" binding:"required,uuid4"`
 }
 
 type DetokeniseCardResponse struct {

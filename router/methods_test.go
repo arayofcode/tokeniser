@@ -66,15 +66,15 @@ func TestHandleTokenise(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
-	
+
 	var result models.TokeniseCardResponse
 	err := json.Unmarshal(w.Body.Bytes(), &result)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, w.Code)
 	err = uuid.Validate(result.Token.String())
 	assert.NoError(t, err)
-	
+
 	db.DeleteCard(context.TODO(), result.Token)
 }
 
@@ -96,7 +96,7 @@ func TestHandleDetokenise(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
-	
+
 	var createResult models.TokeniseCardResponse
 	_ = json.Unmarshal(w.Body.Bytes(), &createResult)
 
@@ -111,15 +111,15 @@ func TestHandleDetokenise(t *testing.T) {
 	req, _ = http.NewRequest("POST", "/detokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
-	
+
 	var result models.DetokeniseCardResponse
 	err := json.Unmarshal(w.Body.Bytes(), &result)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusFound, w.Code)
 	assert.Equal(t, "Aryan", result.Card.CardHolderName)
 	assert.Equal(t, "4000056655665556", result.Card.CardNumber)
 	assert.Equal(t, "12/24", result.Card.ExpiryDate)
-	
+
 	db.DeleteCard(context.TODO(), createResult.Token)
 }

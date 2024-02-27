@@ -32,7 +32,7 @@ func (rc *routerConfig) handleTokenise(c *gin.Context) {
 
 	var payload models.TokenisePayload
 	if err := c.BindJSON(&payload); err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing payload: %s", err)
+		fmt.Fprintf(os.Stderr, "Error parsing payload: %s\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload."})
 		return
 	}
@@ -41,7 +41,7 @@ func (rc *routerConfig) handleTokenise(c *gin.Context) {
 
 	response, err := rc.handler.HandleTokenise(ctx, payload)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}
@@ -55,7 +55,7 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 	var payload models.DetokenisePayload
 	if err := c.BindJSON(&payload); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request payload."})
-		fmt.Fprintf(os.Stderr, "Error parsing payload: %s", err)
+		fmt.Fprintf(os.Stderr, "Error parsing payload: %s\n", err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 
 	response, err := rc.handler.HandleDetokenise(ctx, payload)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}

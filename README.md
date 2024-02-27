@@ -6,7 +6,6 @@ User --> API --> Handler --> Database
 - Same card details sent again. Should we generate new tokens in this case? 
 
 ## Next steps:
-- Fix custom validators (main.go, common/utils.go, models/card.go and models/requests.go)
 - Encryption of secrets received
 - Secure token generation instead of UUIDs
 - Implemetation of HTTPS
