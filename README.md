@@ -32,3 +32,8 @@ User --> API --> Handler --> Database
 | 3 | Encrypt with strong cryptographic algorithms (AES?) | &#9744; | By 28th Feb |
 | 3 | Document Encryption and decryption process | &#9744; | Basic doc by 28th Feb |
 | 3 | Mask sensitive information | &#9744; | By 28th Feb |
+
+## Think about later
+
+- The current implementation in encryption generates a salt, uses it to derive key from a hash function. Then we generate a nonce, encrypt plaintext with the nonce, prepend nonce to the ciphertext. We then prepend salt to the ciphertext. 
+  - Is it good to prepend salt to nonce + ciphertext, or keep salt with token in the mapping?

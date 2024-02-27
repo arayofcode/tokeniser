@@ -39,6 +39,8 @@ func (rc *routerConfig) handleTokenise(c *gin.Context) {
 
 	log.Println("Received /tokenise from request id: " + payload.RequestID)
 
+	log.Println("Encrypting card details:")
+
 	response, err := rc.handler.HandleTokenise(ctx, payload)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -67,6 +69,8 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}
+
+	log.Println("Received encrypted card details. Decrypting it.")
 
 	c.JSON(http.StatusFound, response)
 }
