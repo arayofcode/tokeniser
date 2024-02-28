@@ -1,16 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
     const expiryInput = document.getElementById('expiry_date');
-    expiryInput.addEventListener('input', function(e) {
-        let inputVal = expiryInput.value.replace(/\D/g, '');
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+            let inputVal = expiryInput.value.replace(/\D/g, '');
 
-        inputVal = inputVal.slice(0, 4);
+            inputVal = inputVal.slice(0, 4);
 
-        if (inputVal.length > 2) {
-            inputVal = `${inputVal.slice(0, 2)} / ${inputVal.slice(2)}`;
-        }
+            if (inputVal.length > 2) {
+                inputVal = `${inputVal.slice(0, 2)} / ${inputVal.slice(2)}`;
+            }
 
-        expiryInput.value = inputVal;
-    });
+            expiryInput.value = inputVal;
+        });
+    }
 
     const tokeniseForm = document.getElementById('tokeniseForm');
     if (tokeniseForm) {
@@ -47,36 +49,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             tokeniseForm.reset()
-        });
-    }
-
-    const detokeniseForm = document.getElementById('detokeniseForm');
-    if (detokeniseForm) {
-        detokeniseForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const requestData = {
-                request_id: 'req-' + Math.random().toString(36).substring(2, 9),
-                token: detokeniseForm.token.value,
-            };
-
-            fetch('/detokenise', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                const content = `<p>Card Number: ${data.card.card_number}</p>
-                                 <p>Expiry Date: ${data.card.expiry_date}</p>`;
-                document.getElementById('responsePlaceholder').innerHTML = content;
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                document.getElementById('responsePlaceholder').innerHTML = `<p>Error: ${error.toString()}</p>`;
-            });
         });
     }
 });

@@ -1,10 +1,13 @@
 package main
 
 import (
-	"log"
+	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/arayofcode/tokeniser/cipher"
 	"github.com/arayofcode/tokeniser/common"
@@ -14,6 +17,8 @@ import (
 )
 
 func init() {
+	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Logger()
+
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		validate.RegisterValidation("expirydate", common.ExpiryDateMMYY)
 		validate.RegisterValidation("notallzero", common.NotAllZero)
@@ -21,11 +26,27 @@ func init() {
 }
 
 func main() {
-	db := database.DatabaseInit(common.GetDbURL())
-	log.Println("Database connection successful")
+
+	gin.SetMode(gin.ReleaseMode)
+
+	dbURL := common.GetDbURL()
+	if dbURL == "" {
+		log.Fatal().Msg("Database URL is not configured")
+	}
+
+	db := database.DatabaseInit(dbURL)
+	log.Info().Msg("Database connection successful")
+
+	passphrase := common.GetPassphrase()
+	if passphrase == "" {
+		log.Fatal().Msg("Encryption passphrase is not configured")
+	}
+
+	cipherModule := cipher.Init(passphrase)
+
 	dbHandler := handler.NewHandler(db)
-	cipher := cipher.Init(common.GetPassphrase())
-	api := router.NewRouter(dbHandler, cipher)
-	log.Println("Starting the API")
-	api.StartAPI()
+	apiRouter := router.NewRouter(dbHandler, cipherModule)
+
+	log.Info().Msg("Starting the API")
+	apiRouter.StartAPI()
 }

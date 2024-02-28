@@ -23,12 +23,12 @@ type DetokeniseCardResponse struct {
 
 type InsertCardResult struct {
 	RowID     int       `json:"-"`
-	RequestID string    `json:"request_id"`
 	Token     uuid.UUID `json:"token"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"-"`
 }
 
 type TokeniseCardResponse struct {
+	RequestID string `json:"request_id"`
 	InsertCardResult
 }

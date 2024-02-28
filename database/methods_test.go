@@ -3,6 +3,7 @@ package database_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/arayofcode/tokeniser/cipher"
 	"github.com/arayofcode/tokeniser/common"
@@ -18,15 +19,18 @@ var (
 	secure   cipher.Cipher
 )
 
-func configInit() {
-	ctx = context.Background()
+func configInit(t *testing.T) {
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	t.Cleanup(cancel)
+
 	databaseUrl := common.GetDbURL()
 	dbconfig = database.DatabaseInit(databaseUrl)
 	secure = cipher.Init(common.GetPassphrase())
 }
 
 func TestInsert(t *testing.T) {
-	configInit()
+	configInit(t)
 
 	card := models.CreditCardDetails{
 		CardHolderName: "Test",
@@ -43,7 +47,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestRetrieve(t *testing.T) {
-	configInit()
+	configInit(t)
 	card := models.CreditCardDetails{
 		CardHolderName: "Test",
 		CardNumber:     "4222222222222",
