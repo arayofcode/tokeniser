@@ -3,13 +3,14 @@ package router
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
+	"github.com/arayofcode/tokeniser/common"
 	"github.com/arayofcode/tokeniser/models"
 )
 
@@ -40,31 +41,30 @@ func (rc *routerConfig) handleTokenise(c *gin.Context) {
 
 	var payload models.TokenisePayload
 	if err := c.BindJSON(&payload); err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing payload: %s\n", err)
+		log.Error().Err(err).Msg("Error parsing payload for tokenise")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload."})
 		return
 	}
 
-	log.Println("Received /tokenise from request id: " + payload.RequestID)
-
-	log.Println("Encrypting card details:")
-
 	var err error
 	payload.Card.CardNumberEncrypted, err = rc.cipher.Encrypt([]byte(payload.Card.CardNumber))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error encrypting credit card number: %s\n", err)
+		log.Error().Err(err).Str("requestID", payload.RequestID).Msg("Error encrypting credit card number")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption failure"})
+		return
 	}
 
 	payload.Card.ExpiryDateEncrypted, err = rc.cipher.Encrypt([]byte(payload.Card.ExpiryDate))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error encrypting expiry date: %s\n", err)
+		log.Error().Err(err).Str("requestID", payload.RequestID).Msg("Error encrypting expiry date")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption failure"})
+		return
 	}
 
-	log.Print("Successfully encrypted. Tokenising it")
 	response, err := rc.handler.HandleTokenise(ctx, payload)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error tokenising: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("requestID", payload.RequestID).Msg("Error during tokenisation")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tokenisation failure"})
 		return
 	}
 
@@ -76,37 +76,36 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 
 	var payload models.DetokenisePayload
 	if err := c.BindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid request payload."})
-		fmt.Fprintf(os.Stderr, "Error parsing payload: %s\n", err)
+		log.Error().Err(err).Msg("Error parsing payload for detokenise")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload."})
 		return
 	}
-
-	log.Println("Received /detokenise from request id: " + payload.RequestID)
 
 	response, err := rc.handler.HandleDetokenise(ctx, payload)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error during detokenisation")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}
 
-	log.Println("Received encrypted card details. Decrypting")
 	cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
-	response.Card.CardNumber = string(cardNumberByte)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
 		return
 	}
+	response.Card.CardNumber = string(cardNumberByte)
 
 	expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
-	response.Card.ExpiryDate = string(expiryDateByte)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
 		return
 	}
-	c.JSON(http.StatusFound, response)
+	response.Card.ExpiryDate = string(expiryDateByte)
+	response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (rc *routerConfig) handleTokeniseForm(c *gin.Context) {
@@ -138,7 +137,7 @@ func (rc *routerConfig) handleDashboard(c *gin.Context) {
 		for i := range data {
 			cardNumberDecryptedByte, _ := rc.cipher.Decrypt(data[i].CardNumberEncrypted)
 			expiryDateDecryptedByte, _ := rc.cipher.Decrypt(data[i].ExpiryDateEncrypted)
-			data[i].CardNumber = maskLeft(string(cardNumberDecryptedByte))
+			data[i].CardNumber = common.MaskLeft(string(cardNumberDecryptedByte), 4)
 			expiryDate := string(expiryDateDecryptedByte)
 			data[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
 			data[i].CardNumberEncrypted = nil
@@ -170,36 +169,52 @@ func (rc *routerConfig) handleAll(c *gin.Context) {
 		payload.Mask = true
 	}
 
-	data, err := rc.handler.GetAllCards(ctx)
+	cards, err := rc.handler.GetAllCards(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Some finding all cards: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Msg("Failed to retrieve all cards")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cards"})
 		return
 	}
 
 	if payload.Mask {
-		for i := range data {
-			cardNumberDecryptedByte, _ := rc.cipher.Decrypt(data[i].CardNumberEncrypted)
-			expiryDateDecryptedByte, _ := rc.cipher.Decrypt(data[i].ExpiryDateEncrypted)
-			data[i].CardNumber = maskLeft(string(cardNumberDecryptedByte))
+		for i, card := range cards {
+			cardNumberDecryptedByte, err := rc.cipher.Decrypt(card.CardNumberEncrypted)
+			if err != nil {
+				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt card number")
+				continue
+			}
+			expiryDateDecryptedByte, err := rc.cipher.Decrypt(card.ExpiryDateEncrypted)
+			if err != nil {
+				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt expiry date")
+				continue
+			}
+			cards[i].CardNumber = common.MaskLeft(string(cardNumberDecryptedByte), 4)
 			expiryDate := string(expiryDateDecryptedByte)
-			data[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
-			data[i].CardNumberEncrypted = nil
-			data[i].ExpiryDateEncrypted = nil
+			cards[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
+			cards[i].CardNumberEncrypted = nil
+			cards[i].ExpiryDateEncrypted = nil
 		}
 	} else {
-		for i := range data {
-			cardNumberDecryptedByte, _ := rc.cipher.Decrypt(data[i].CardNumberEncrypted)
-			expiryDateDecryptedByte, _ := rc.cipher.Decrypt(data[i].ExpiryDateEncrypted)
-			data[i].CardNumber = string(cardNumberDecryptedByte)
+		for i, card := range cards {
+			cardNumberDecryptedByte, err := rc.cipher.Decrypt(card.CardNumberEncrypted)
+			if err != nil {
+				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt card number")
+				continue
+			}
+			expiryDateDecryptedByte, err := rc.cipher.Decrypt(card.ExpiryDateEncrypted)
+			if err != nil {
+				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt expiry date")
+				continue
+			}
+			cards[i].CardNumber = string(cardNumberDecryptedByte)
 			expiryDate := string(expiryDateDecryptedByte)
-			data[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
-			data[i].CardNumberEncrypted = nil
-			data[i].ExpiryDateEncrypted = nil
+			cards[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
+			cards[i].CardNumberEncrypted = nil
+			cards[i].ExpiryDateEncrypted = nil
 		}
 	}
 
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, cards)
 }
 
 func (rc *routerConfig) handleUnmask(c *gin.Context) {
@@ -210,42 +225,33 @@ func (rc *routerConfig) handleUnmask(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&payload); err != nil {
+		log.Error().Err(err).Msg("Invalid token provided for unmasking")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
-		log.Printf("Invalid Token provided: %s", payload.Token)
 		return
 	}
 
 	response, err := rc.handler.HandleDetokenise(ctx, models.DetokenisePayload{Token: payload.Token})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error during unmasking")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unmasking failure"})
 		return
 	}
 
-	log.Println("Received encrypted card details. Decrypting")
 	cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
-	response.Card.CardNumber = string(cardNumberByte)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
 		return
 	}
+	response.Card.CardNumber = string(cardNumberByte)
 
 	expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
-	response.Card.ExpiryDate = string(expiryDateByte)
-	response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
 		return
 	}
+	response.Card.ExpiryDate = string(expiryDateByte)
+	response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
 	c.JSON(http.StatusFound, response)
-}
-
-func maskLeft(s string) string {
-	rs := []rune(s)
-	for i := 0; i < len(rs)-4; i++ {
-		rs[i] = 'X'
-	}
-	return string(rs)
 }

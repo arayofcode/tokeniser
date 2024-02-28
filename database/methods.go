@@ -4,25 +4,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/arayofcode/tokeniser/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/rs/zerolog/log"
 )
 
 func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult, err error) {
-	log.Println("Inserting card details")
+	log.Info().Msg("Inserting card details")
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		return results, fmt.Errorf("database connection failed: %v", err)
+		log.Error().Err(err).Msg("Database connection failed")
+		return results, err
 	}
 	defer conn.Close(ctx)
 
 	var dbcard insertCardResult
-	err = conn.QueryRow(ctx, "INSERT INTO credit_cards (cardholder_name, card_number_encrypted, expiry_date_encrypted) VALUES ($1, $2, $3) RETURNING id, token, created_at, updated_at",
+	err = conn.QueryRow(ctx, `
+		INSERT INTO credit_cards (cardholder_name, card_number_encrypted, expiry_date_encrypted) 
+		VALUES ($1, $2, $3) 
+		RETURNING id, token, created_at, updated_at`,
 		card.CardHolderName,
 		card.CardNumberEncrypted,
 		card.ExpiryDateEncrypted,
@@ -34,7 +38,8 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	)
 
 	if err != nil {
-		return results, fmt.Errorf("card insertion in database failed: %v", err)
+		log.Error().Err(err).Msg("Failed to insert card into database")
+		return results, err
 	}
 
 	results = models.InsertCardResult{
@@ -44,15 +49,19 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 		UpdatedAt: dbcard.UpdatedAt.Time,
 	}
 
-	log.Printf("Inserted successfully at timestamp %s", results.CreatedAt.String())
+	log.Info().
+		Str("token", results.Token.String()).
+		Time("createdAt", results.CreatedAt).
+		Msg("Card inserted successfully")
 	return
 }
 
 func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow, err error) {
-	log.Printf("Searching for token: %s", token)
+	log.Info().Str("token", token.String()).Msg("Retrieving card details")
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		return creditCard, fmt.Errorf("database connection failed: %v", err)
+		log.Error().Err(err).Msg("Failed to connect to database")
+		return creditCard, err
 	}
 	defer conn.Close(ctx)
 
@@ -69,62 +78,62 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 		&dbcard.ExpiryDateEncrypted,
 	)
 
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return creditCard, fmt.Errorf("failed GetCreditCardDetails with token %s: %v", token, err)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Info().Str("token", token.String()).Msg("No card found with the given token")
+		} else {
+			log.Error().Err(err).Str("token", token.String()).Msg("Failed to retrieve card details")
+		}
+		return creditCard, err
 	}
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		log.Println("No card with such token")
-		return
+	creditCard = models.CreditCardRow{
+		RowID:               dbcard.RowID,
+		Token:               dbcard.Token.Bytes,
+		CardHolderName:      dbcard.CardHolderName.String,
+		CardNumberEncrypted: dbcard.CardNumberEncrypted,
+		ExpiryDateEncrypted: dbcard.ExpiryDateEncrypted,
+		CreatedAt:           dbcard.CreatedAt.Time,
+		UpdatedAt:           dbcard.UpdatedAt.Time,
 	}
 
-	creditCard.RowID = dbcard.RowID
-	creditCard.Token = dbcard.Token.Bytes
-	creditCard.CardHolderName = dbcard.CardHolderName.String
-	creditCard.CardNumberEncrypted = dbcard.CardNumberEncrypted
-	creditCard.ExpiryDateEncrypted = dbcard.ExpiryDateEncrypted
-	creditCard.CreatedAt = dbcard.CreatedAt.Time
-	creditCard.UpdatedAt = dbcard.UpdatedAt.Time
-
-	log.Println("Found! Returning details")
+	log.Info().Str("token", token.String()).Msg("Card details found!")
 	return
 }
 
 func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID) (deleted bool) {
-	log.Printf("Deleting card with token: %s", token)
+	log.Info().Str("token", token.String()).Msg("Attempting to delete card")
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		return
+		log.Error().Err(err).Msg("Unable to connect to database for deletion")
+		return false
 	}
 	defer conn.Close(ctx)
 
 	transaction, err := conn.Begin(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start transaction: %v\n", err)
+		log.Error().Err(err).Msg("Failed to start transaction")
 		return false
 	}
-
 	defer transaction.Rollback(ctx)
 
 	cmdTag, err := transaction.Exec(ctx, "DELETE FROM credit_cards WHERE token=$1", token)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Delete Failed: %v\n", err)
+		log.Error().Err(err).Str("token", token.String()).Msg("Failed to delete card from database within transaction")
 		return false
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		log.Println("No card found with given token")
+		log.Info().Str("token", token.String()).Msg("No card found with the given token for deletion")
 		return false
-	} else {
-		log.Printf("%d rows were deleted.", cmdTag.RowsAffected())
 	}
 
 	if err := transaction.Commit(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to commit transaction: %v\n", err)
+		log.Error().Err(err).Str("token", token.String()).Msg("Failed to commit transaction for card deletion")
 		return false
 	}
 
+	log.Info().Str("token", token.String()).Msgf("%d row(s) were deleted.", cmdTag.RowsAffected())
 	return true
 }
 

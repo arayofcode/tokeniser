@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const token = this.getAttribute('data-token');
             const dataItem = this.closest('.dataItem');
 
-            // Target the specific placeholders for update
             const cardNumberPlaceholder = dataItem.querySelector(`#cardNumber${token}`);
             const expiryDatePlaceholder = dataItem.querySelector(`#expiryDate${token}`);
 

@@ -3,6 +3,7 @@ package cipher
 import (
 	"testing"
 
+	"github.com/arayofcode/tokeniser/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,4 +52,19 @@ func TestEncryptionWithDifferentPassphrases(t *testing.T) {
 	assert.Error(t, err)
 
 	assert.NotEqual(t, plaintext, decrypted)
+}
+
+func TestEncryptionDecryptionEmptyPlaintext(t *testing.T) {
+	passphrase := "so-many-insecure-passphrases-but-no-twist"
+	plaintext := []byte("")
+
+	c := Init(passphrase)
+
+	ciphertext, err := c.Encrypt(plaintext)
+	assert.NoError(t, err, "Encryption should not error on empty plaintext")
+
+	decrypted, err := c.Decrypt(ciphertext)
+	assert.NoError(t, err, "Decryption should not error on ciphertext from empty plaintext")
+
+	common.AssertByteSliceEqual(t, plaintext, decrypted)
 }
