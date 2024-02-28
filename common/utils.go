@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/arayofcode/tokeniser/models"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -22,16 +23,12 @@ func PrettyPrint(data interface{}) string {
 	return string(p)
 }
 
-func GetDbURL() (url string) {
+func getConfig() (config models.Config) {
 	jsonFile, err := os.Open("/Users/aryansharma/code/learning/tokeniser/config.json")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer jsonFile.Close()
-
-	var config struct {
-		Db string `json:"db_creds"`
-	}
 
 	byteValue, err := io.ReadAll(jsonFile)
 	if err != nil {
@@ -44,11 +41,20 @@ func GetDbURL() (url string) {
 		fmt.Fprintf(os.Stderr, "Error while parsing json: %v\n", err)
 		return
 	}
-
-	return config.Db
+	return config
 }
 
-func ExpiryDateMMYY(fl validator.FieldLevel) bool {
+func GetDbURL() (url string) {
+	config := getConfig()
+	return config.DB
+}
+
+func GetPassphrase() (passphrase string) {
+	config := getConfig()
+	return config.Passphrase
+}
+
+var ExpiryDateMMYY validator.Func = func(fl validator.FieldLevel) bool {
 	expiry := fl.Field().String()
 	if len(expiry) != 4 {
 		return false
@@ -75,7 +81,7 @@ func ExpiryDateMMYY(fl validator.FieldLevel) bool {
 	return true
 }
 
-func NotAllZero(fl validator.FieldLevel) bool {
+var NotAllZero validator.Func = func(fl validator.FieldLevel) bool {
 	cardNumber := fl.Field().String()
 	isValidLength := len(cardNumber) >= 13 && len(cardNumber) <= 19
 	isAllZeroes := regexp.MustCompile(`^0+$`).MatchString(cardNumber)

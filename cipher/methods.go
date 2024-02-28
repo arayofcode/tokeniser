@@ -15,7 +15,7 @@ import (
 const (
 	aesKeySize       = 32
 	bcryptCostFactor = 12
-	saltSize         = 16 // NIST recommendation of 128 bits (16 bytes)
+	saltSize         = 16     // NIST recommendation of 128 bits (16 bytes)
 	pbkdf2Iterations = 600000 // OWASP Recommended
 )
 
@@ -31,32 +31,32 @@ func (c *cipherConfig) deriveKeyFromPassword(salt []byte) (key []byte) {
 	return pbkdf2.Key([]byte(c.passphrase), salt, pbkdf2Iterations, aesKeySize, sha512.New)
 }
 
-func (c *cipherConfig) Encrypt(dataByte []byte) (ciphertext []byte, salt []byte, err error) {
-	salt, err = generateSalt()
+func (c *cipherConfig) Encrypt(dataByte []byte) (ciphertext []byte, err error) {
+	salt, err := generateSalt()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	key := c.deriveKeyFromPassword(salt)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	ciphertext = gcm.Seal(nonce, nonce, dataByte, nil)
 	ciphertext = append(salt, ciphertext...)
-	return ciphertext, salt, nil
+	return ciphertext, nil
 }
 
 func (c *cipherConfig) Decrypt(cipherTextWithNonceAndSalt []byte) (plaintext []byte, err error) {

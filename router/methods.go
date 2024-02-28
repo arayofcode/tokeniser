@@ -41,9 +41,21 @@ func (rc *routerConfig) handleTokenise(c *gin.Context) {
 
 	log.Println("Encrypting card details:")
 
+	var err error
+	payload.Card.CardNumberEncrypted, err = rc.cipher.Encrypt([]byte(payload.Card.CardNumber))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error encrypting credit card number: %s\n", err)
+	}
+
+	payload.Card.ExpiryDateEncrypted, err = rc.cipher.Encrypt([]byte(payload.Card.ExpiryDate))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error encrypting expiry date: %s\n", err)
+	}
+
+	log.Print("Successfully encrypted. Tokenising it")
 	response, err := rc.handler.HandleTokenise(ctx, payload)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "Error tokenising: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}
@@ -70,7 +82,21 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 		return
 	}
 
-	log.Println("Received encrypted card details. Decrypting it.")
+	log.Println("Received encrypted card details. Decrypting")
+	cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
+	response.Card.CardNumber = string(cardNumberByte)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		return
+	}
 
+	expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
+	response.Card.ExpiryDate = string(expiryDateByte)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error decrypting card number: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		return
+	}
 	c.JSON(http.StatusFound, response)
 }

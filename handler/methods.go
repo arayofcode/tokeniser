@@ -21,8 +21,8 @@ func (h *HandlerData) HandleTokenise(ctx context.Context, newPayload models.Toke
 func (h *HandlerData) HandleDetokenise(ctx context.Context, payload models.DetokenisePayload) (response models.DetokeniseCardResponse, err error) {
 	cardDetails, err := h.db.GetCardDetails(ctx, payload.Token)
 	response.RequestID = payload.RequestID
+	response.Card.CardNumberEncrypted = cardDetails.CardNumberEncrypted
+	response.Card.ExpiryDateEncrypted = cardDetails.ExpirydateEncrypted
 	response.Card.CardHolderName = cardDetails.CardHolderName
-	response.Card.CardNumber = cardDetails.CardNumber
-	response.Card.ExpiryDate = cardDetails.ExpiryDate
 	return response, err
 }

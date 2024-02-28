@@ -5,36 +5,47 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/arayofcode/tokeniser/cipher"
 	"github.com/arayofcode/tokeniser/common"
 	"github.com/arayofcode/tokeniser/database"
 	"github.com/arayofcode/tokeniser/handler"
 	"github.com/arayofcode/tokeniser/models"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
 	testRouter *gin.Engine
 	db         database.Database
 	h          handler.Handler
+	c          cipher.Cipher
 )
 
 func configInit() {
+	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		validate.RegisterValidation("expiry_date", common.ExpiryDateMMYY)
+		validate.RegisterValidation("notallzero", common.NotAllZero)
+	}
 	databaseUrl := common.GetDbURL()
 	db = database.DatabaseInit(databaseUrl)
 	h = handler.NewHandler(db)
+	c = cipher.Init(common.GetPassphrase())
 	testRouter = setupRouter()
 }
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 	h := handler.NewHandler(db)
-	routerConfig := &routerConfig{router: r, handler: h}
+	routerConfig := &routerConfig{router: r, handler: h, cipher: c}
 	routerConfig.setupRoutes()
 	return r
 }
@@ -57,8 +68,8 @@ func TestHandleTokenise(t *testing.T) {
 		"request_id": "req-12345",
 		"card": {
         	"cardholder_name" : "Test",
-			"card_number": "4000056655665556",
-			"expiry_date": "12/24"
+			"card_number": "4222222222222",
+			"expiry_date": "1225"
 		}
 	}
 	`
@@ -87,8 +98,8 @@ func TestHandleDetokenise(t *testing.T) {
 		"request_id": "req-12345",
 		"card": {
         	"cardholder_name" : "Test_name",
-			"card_number": "4000056655665556",
-			"expiry_date": "12/24"
+			"card_number": "378282246310005",
+			"expiry_date": "1224"
 		}
 	}
 	`
@@ -114,12 +125,13 @@ func TestHandleDetokenise(t *testing.T) {
 
 	var result models.DetokeniseCardResponse
 	err := json.Unmarshal(w.Body.Bytes(), &result)
+	log.Printf("%+v", result)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusFound, w.Code)
-	assert.Equal(t, "Aryan", result.Card.CardHolderName)
-	assert.Equal(t, "4000056655665556", result.Card.CardNumber)
-	assert.Equal(t, "12/24", result.Card.ExpiryDate)
+	assert.Equal(t, "Test_name", result.Card.CardHolderName)
+	assert.Equal(t, "378282246310005", result.Card.CardNumber)
+	assert.Equal(t, "1224", result.Card.ExpiryDate)
 
 	db.DeleteCard(context.TODO(), createResult.Token)
 }

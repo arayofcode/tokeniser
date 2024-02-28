@@ -22,10 +22,10 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	defer conn.Close(ctx)
 
 	var dbcard insertCardResult
-	err = conn.QueryRow(ctx, "INSERT INTO credit_cards (cardholder_name, card_number, expiry_date) VALUES ($1, $2, $3) RETURNING id, token, created_at, updated_at",
+	err = conn.QueryRow(ctx, "INSERT INTO credit_cards (cardholder_name, card_number_encrypted, expiry_date_encrypted) VALUES ($1, $2, $3) RETURNING id, token, created_at, updated_at",
 		card.CardHolderName,
-		card.CardNumber,
-		card.ExpiryDate,
+		card.CardNumberEncrypted,
+		card.ExpiryDateEncrypted,
 	).Scan(
 		&dbcard.ID,
 		&dbcard.Token,
@@ -57,18 +57,16 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	defer conn.Close(ctx)
 
 	var dbcard card
-	err = conn.QueryRow(ctx, "SELECT id, token, cardholder_name, card_number, expiry_date, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards WHERE token=$1",
+	err = conn.QueryRow(ctx, "SELECT id, token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards WHERE token=$1",
 		token,
 	).Scan(
 		&dbcard.RowID,
 		&dbcard.Token,
 		&dbcard.CardHolderName,
-		&dbcard.CardNumber,
-		&dbcard.ExpiryDate,
 		&dbcard.CreatedAt,
 		&dbcard.UpdatedAt,
 		&dbcard.CardNumberEncrypted,
-		&dbcard.ExpirydateEncrypted,
+		&dbcard.ExpiryDateEncrypted,
 	)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -83,10 +81,8 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	creditCard.RowID = dbcard.RowID
 	creditCard.Token = dbcard.Token.Bytes
 	creditCard.CardHolderName = dbcard.CardHolderName.String
-	creditCard.CardNumber = dbcard.CardNumber.String
 	creditCard.CardNumberEncrypted = dbcard.CardNumberEncrypted
-	creditCard.ExpiryDate = dbcard.ExpiryDate.String
-	creditCard.ExpirydateEncrypted = dbcard.ExpirydateEncrypted
+	creditCard.ExpirydateEncrypted = dbcard.ExpiryDateEncrypted
 	creditCard.CreatedAt = dbcard.CreatedAt.Time
 	creditCard.UpdatedAt = dbcard.UpdatedAt.Time
 
@@ -158,7 +154,7 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 			&cardRow.CreatedAt,
 			&cardRow.UpdatedAt,
 			&cardRow.CardNumberEncrypted,
-			&cardRow.ExpirydateEncrypted,
+			&cardRow.ExpiryDateEncrypted,
 		)
 
 		if err != nil {
@@ -174,7 +170,7 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 			CreatedAt:           cardRow.CreatedAt.Time,
 			UpdatedAt:           cardRow.UpdatedAt.Time,
 			CardNumberEncrypted: cardRow.CardNumberEncrypted,
-			ExpirydateEncrypted: cardRow.ExpirydateEncrypted,
+			ExpirydateEncrypted: cardRow.ExpiryDateEncrypted,
 		}
 		cards = append(cards, creditCard)
 	}

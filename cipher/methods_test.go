@@ -12,7 +12,7 @@ func TestEncryptionDecryption(t *testing.T) {
 
 	c := Init(passphrase)
 
-	ciphertext, _, err := c.Encrypt(plaintext)
+	ciphertext, err := c.Encrypt(plaintext)
 	assert.NoError(t, err)
 
 	decrypted, err := c.Decrypt(ciphertext)
@@ -28,7 +28,7 @@ func TestEncryptDecryptWithDifferentInstances(t *testing.T) {
 	c1 := Init(passphrase)
 	c2 := Init(passphrase)
 
-	ciphertext, _, err := c1.Encrypt(plaintext)
+	ciphertext, err := c1.Encrypt(plaintext)
 	assert.NoError(t, err)
 
 	decrypted, err := c2.Decrypt(ciphertext)
@@ -43,7 +43,7 @@ func TestEncryptionWithDifferentPassphrases(t *testing.T) {
 	c1 := Init("passphrase1")
 	c2 := Init("passphrase2")
 
-	ciphertext, _, err := c1.Encrypt(plaintext)
+	ciphertext, err := c1.Encrypt(plaintext)
 	assert.NoError(t, err)
 
 	decrypted, err := c2.Decrypt(ciphertext)
