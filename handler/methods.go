@@ -22,7 +22,11 @@ func (h *HandlerData) HandleDetokenise(ctx context.Context, payload models.Detok
 	cardDetails, err := h.db.GetCardDetails(ctx, payload.Token)
 	response.RequestID = payload.RequestID
 	response.Card.CardNumberEncrypted = cardDetails.CardNumberEncrypted
-	response.Card.ExpiryDateEncrypted = cardDetails.ExpirydateEncrypted
+	response.Card.ExpiryDateEncrypted = cardDetails.ExpiryDateEncrypted
 	response.Card.CardHolderName = cardDetails.CardHolderName
 	return response, err
+}
+
+func (h *HandlerData) GetAllCards(ctx context.Context) ([]models.CreditCardRow, error) {
+	return h.db.ShowAllCards(ctx)
 }

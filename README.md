@@ -10,9 +10,9 @@ User --> API --> Handler --> Database Handler -> Database
 - Decryption process follows similar pattern: derive salt, nonce and ciphertext. Use those values to obtain plaintext.
 
 ## Next steps:
-- Deployment of the API 
-- Basic HTML pages to tokenise and detokenise. Ensure showing masked card. If user wants to see full card data, they should make another request.
-- In-memory storage of sensitive information. Check this library: https://github.com/awnumar/memguard
+- Deployment of the API
+- Improve performance. /all API takes 7 seconds for 15 cards. Setup concurrency.
+- Better way for in-memory storage of sensitive information. Check this library: https://github.com/awnumar/memguard
 - Implemetation of HTTPS
 - Map all data to users
 	- Keep one user until we work on user management
@@ -29,7 +29,7 @@ User --> API --> Handler --> Database Handler -> Database
 | 3 | Ensure sensitive data is not being logged anywhere intentionally or accidentally | &#9745; | By 28th Feb | No logging as of now. Still need to work on in-memory safety to avoid accidental dumping. Will check external libraries |
 | 3 | Encrypt with strong cryptographic algorithms | &#9745; | By 28th Feb | Using AES-256 |
 | 3 | Document Encryption and decryption process | &#9745; | Basic documentation by 28th Feb | Documented above |
-| 3 | Mask sensitive information | &#9744; | By 28th Feb |
+| 3 | Mask sensitive information | &#9745; | By 28th Feb | Dashboard shows masked data. API part will be implemeted later |
 
 ## Deployment Strategy (Architecture-wise in GCP)
 
@@ -51,3 +51,5 @@ I'm not sure if I'd actually use GCP to deploy it (because it costs money :P) bu
 - Read underlying functions used in libraries
 - Helpful for testing: https://www.paypalobjects.com/en_AU/vhelp/paypalmanager_help/credit_card_numbers.htm
 - Change the "cipher" package name as well? It's clashing with another package that you're using
+- Invalid expiry dates or credit card numbers would still work through dependency injection (using test cases)
+  - Validate before encrypting and storing them

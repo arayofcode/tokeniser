@@ -82,7 +82,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	creditCard.Token = dbcard.Token.Bytes
 	creditCard.CardHolderName = dbcard.CardHolderName.String
 	creditCard.CardNumberEncrypted = dbcard.CardNumberEncrypted
-	creditCard.ExpirydateEncrypted = dbcard.ExpiryDateEncrypted
+	creditCard.ExpiryDateEncrypted = dbcard.ExpiryDateEncrypted
 	creditCard.CreatedAt = dbcard.CreatedAt.Time
 	creditCard.UpdatedAt = dbcard.UpdatedAt.Time
 
@@ -128,7 +128,7 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID)
 	return true
 }
 
-func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []models.CreditCardRow, err error) {
+func (dbConfig *databaseConfig) ShowAllCards(ctx context.Context) (cards []models.CreditCardRow, err error) {
 	log.Printf("Finding all cards in DB")
 
 	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
@@ -137,7 +137,7 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 	}
 	defer conn.Close(ctx)
 
-	rows, err := conn.Query(ctx, "SELECT id, token, cardholder_name, card_number, expiry_date, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards")
+	rows, err := conn.Query(ctx, "SELECT token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error while querying: %v\n", err)
 		return cards, fmt.Errorf("ShowAllCards query failed: %v", err)
@@ -146,11 +146,8 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 	for rows.Next() {
 		var cardRow card
 		err = rows.Scan(
-			&cardRow.RowID,
 			&cardRow.Token,
 			&cardRow.CardHolderName,
-			&cardRow.CardNumber,
-			&cardRow.ExpiryDate,
 			&cardRow.CreatedAt,
 			&cardRow.UpdatedAt,
 			&cardRow.CardNumberEncrypted,
@@ -162,15 +159,12 @@ func (dbConfig *databaseConfig) TempShowCards(ctx context.Context) (cards []mode
 		}
 
 		var creditCard = models.CreditCardRow{
-			RowID:               cardRow.RowID,
 			Token:               uuid.UUID(cardRow.Token.Bytes),
 			CardHolderName:      cardRow.CardHolderName.String,
-			CardNumber:          cardRow.CardNumber.String,
-			ExpiryDate:          cardRow.ExpiryDate.String,
 			CreatedAt:           cardRow.CreatedAt.Time,
 			UpdatedAt:           cardRow.UpdatedAt.Time,
 			CardNumberEncrypted: cardRow.CardNumberEncrypted,
-			ExpirydateEncrypted: cardRow.ExpiryDateEncrypted,
+			ExpiryDateEncrypted: cardRow.ExpiryDateEncrypted,
 		}
 		cards = append(cards, creditCard)
 	}
