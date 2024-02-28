@@ -15,7 +15,7 @@ import (
 
 func init() {
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		validate.RegisterValidation("expiry_date", common.ExpiryDateMMYY)
+		validate.RegisterValidation("expirydate", common.ExpiryDateMMYY)
 		validate.RegisterValidation("notallzero", common.NotAllZero)
 	}
 }

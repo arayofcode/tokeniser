@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Dashboard</title>
+  <script src="/static/dashboard.js"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <h1>Data Dashboard</h1>
+  <div id="dataContainer">
+    {{range .data}}
+    <div class="dataItem">
+      <h3>Token: {{.TokenString}}</h3>
+      <div class="maskedDetails">
+        <p>Cardholder Name: {{.CardHolderName}}</p>
+        <p id="cardNumber{{.TokenString}}">Card Number: {{.CardNumber}}</p>
+        <p id="expiryDate{{.TokenString}}">Expiry Date: {{.ExpiryDate}}</p>
+        <p>Created At: {{.CreatedAt}}</p>
+        <p>Updated At: {{.UpdatedAt}}</p>
+      </div>
+      <button class="unmaskBtn" data-token="{{.TokenString}}">Unmask Card Details</button>
+    </div>
+    {{end}}
+  </div>
+</body>
+
+</html>

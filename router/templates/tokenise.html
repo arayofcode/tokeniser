@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Tokenise</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <form id="tokeniseForm">
+    <input type="text" name="cardholder_name" placeholder="Card Holder Name">
+    <input type="text" name="card_number" placeholder="Card Number">
+    <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY" maxlength="" required>
+    <button type="submit">Tokenise</button>
+  </form>
+  <div id="responsePlaceholder"></div>
+  <script src="/static/formHandlers.js"></script>
+</body>
+
+</html>
