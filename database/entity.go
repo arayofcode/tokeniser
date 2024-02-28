@@ -13,7 +13,7 @@ type card struct {
 	CreatedAt           pgtype.Timestamptz `db:"created_at"`
 	UpdatedAt           pgtype.Timestamptz `db:"updated_at"`
 	CardNumberEncrypted []byte             `db:"card_number_encrypted"`
-	ExpirydateEncrypted []byte             `db:"expiry_date_encrypted"`
+	ExpiryDateEncrypted []byte             `db:"expiry_date_encrypted"`
 }
 
 type insertCardResult struct {
