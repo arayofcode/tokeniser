@@ -2,16 +2,17 @@ package handler_test
 
 import (
 	"context"
-	"log"
 	"testing"
+
+	"github.com/rs/zerolog/log"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/arayofcode/tokeniser/cipher"
 	"github.com/arayofcode/tokeniser/common"
 	"github.com/arayofcode/tokeniser/database"
 	"github.com/arayofcode/tokeniser/handler"
 	"github.com/arayofcode/tokeniser/models"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -43,7 +44,7 @@ func TestHandlerTokeniseNew(t *testing.T) {
 	newPayload.Card.ExpiryDateEncrypted, _ = secure.Encrypt([]byte(newPayload.Card.ExpiryDateEncrypted))
 	results, _ := newHandler.HandleTokenise(ctx, newPayload)
 	assert.NoError(t, uuid.Validate(results.Token.String()))
-	log.Println("Cleaning up the row")
+	log.Print("Cleaning up the row")
 	assert.True(t, dbconfig.DeleteCard(ctx, results.Token))
 }
 

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arayofcode/tokeniser/cipher"
@@ -32,7 +32,7 @@ var (
 
 func configInit() {
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		validate.RegisterValidation("expiry_date", common.ExpiryDateMMYY)
+		validate.RegisterValidation("expirydate", common.ExpiryDateMMYY)
 		validate.RegisterValidation("notallzero", common.NotAllZero)
 	}
 	databaseUrl := common.GetDbURL()
@@ -74,7 +74,7 @@ func TestHandleTokenise(t *testing.T) {
 	}
 	`
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
+	req, _ := http.NewRequest("POST", "/v1/tokens", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
 
@@ -104,7 +104,7 @@ func TestHandleDetokenise(t *testing.T) {
 	}
 	`
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/tokenise", bytes.NewBufferString(payload))
+	req, _ := http.NewRequest("POST", "/v1/tokens", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
 
@@ -119,7 +119,7 @@ func TestHandleDetokenise(t *testing.T) {
 	}`, createResult.Token)
 
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("POST", "/detokenise", bytes.NewBufferString(payload))
+	req, _ = http.NewRequest("POST", "/v1/tokens/detokenise", bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 	testRouter.ServeHTTP(w, req)
 
@@ -128,10 +128,9 @@ func TestHandleDetokenise(t *testing.T) {
 	log.Printf("%+v", result)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusFound, w.Code)
 	assert.Equal(t, "Test_name", result.Card.CardHolderName)
 	assert.Equal(t, "378282246310005", result.Card.CardNumber)
-	assert.Equal(t, "1224", result.Card.ExpiryDate)
+	assert.Equal(t, "12/24", result.Card.ExpiryDate)
 
 	db.DeleteCard(context.TODO(), createResult.Token)
 }

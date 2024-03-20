@@ -19,7 +19,6 @@ type CreditCardDetails struct {
 	ExpiryDate          string `json:"expiry_date" binding:"required,expirydate"`
 	CardNumberEncrypted []byte `json:"-" db:"card_number_encrypted"`
 	ExpiryDateEncrypted []byte `json:"-" db:"expiry_date_encrypted"`
-	
 }
 
 type CreditCardRow struct {
@@ -35,11 +34,5 @@ type CreditCardRow struct {
 }
 
 func (c CreditCardRow) TokenString() string {
-    return c.Token.String()
-}
-
-// For testing
-type CreditCardRowNew struct {
-	CardInternalData
-	CreditCardDetails
+	return c.Token.String()
 }
