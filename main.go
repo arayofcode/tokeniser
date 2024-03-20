@@ -26,7 +26,6 @@ func init() {
 }
 
 func main() {
-
 	gin.SetMode(gin.ReleaseMode)
 
 	dbURL := common.GetDbURL()

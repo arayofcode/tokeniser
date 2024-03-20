@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 token: detokeniseForm.token.value,
             };
 
-            fetch('/detokenise', {
+            fetch('/forms/detokenise', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

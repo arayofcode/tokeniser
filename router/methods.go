@@ -16,20 +16,40 @@ import (
 
 func (rc *routerConfig) setupRoutes() {
 	rc.router.GET("/ping", rc.handlePing)
-	rc.router.POST("/tokenise", rc.handleTokenise)
-	rc.router.POST("/detokenise", rc.handleDetokenise)
-	rc.router.GET("/tokenise", rc.handleTokeniseForm)
-	rc.router.GET("/detokenise", rc.handleDetokeniseForm)
-	rc.router.GET("/dashboard", rc.handleDashboard)
-	rc.router.GET("/all", rc.handleAll)
-	rc.router.POST("/unmask", rc.handleUnmask)
+	
+	v1 := rc.router.Group("/v1")
+	tokens := v1.Group("/tokens")
+	{
+		tokens.GET("", rc.handleAll)
+		tokens.POST("", rc.handleTokenise)
+		tokens.POST("/detokenise", rc.handleDetokenise)
+		tokens.POST("/unmask", rc.handleUnmask)
+	}
+
+	forms := rc.router.Group("/forms")
+	{
+		forms.GET("/tokenise", rc.handleTokeniseForm)
+		forms.GET("/detokenise", rc.handleDetokeniseForm)
+		forms.GET("/dashboard", rc.handleDashboard)
+		forms.POST("/unmask", rc.handleUnmask)
+	}
 }
 
 func (rc *routerConfig) StartAPI() {
+	port := 8080
 	rc.router.LoadHTMLGlob("router/templates/*")
 	rc.router.Static("/static", "router/static")
 	rc.setupRoutes()
-	rc.router.Run(":8080")
+
+	for _, route := range rc.router.Routes() {
+		log.Info().Msg(fmt.Sprintf("%s\t\t%s", route.Method, route.Path))
+	}
+
+	defer log.Info().Msgf("API Running at port: %d", port)
+
+	if err := rc.router.Run(fmt.Sprintf(":%d", port)); err != nil {
+		log.Fatal().Err(err).Msg("Failed to start the server")
+	}
 }
 
 func (rc *routerConfig) handlePing(c *gin.Context) {

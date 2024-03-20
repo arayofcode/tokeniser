@@ -104,11 +104,11 @@ var NotAllZero validator.Func = func(fl validator.FieldLevel) bool {
 }
 
 func AssertByteSliceEqual(t *testing.T, expected, actual []byte) {
-    if (expected == nil && len(actual) == 0) || (actual == nil && len(expected) == 0) {
-        assert.True(t, true)
-    } else {
-        assert.Equal(t, expected, actual)
-    }
+	if (expected == nil && len(actual) == 0) || (actual == nil && len(expected) == 0) {
+		assert.True(t, true)
+	} else {
+		assert.Equal(t, expected, actual)
+	}
 }
 
 func MaskLeft(s string, lastVisibleN int) string {
