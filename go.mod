@@ -1,6 +1,6 @@
 module github.com/arayofcode/tokeniser
 
-go 1.21.6
+go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1

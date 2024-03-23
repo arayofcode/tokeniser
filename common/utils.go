@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -29,30 +28,36 @@ func PrettyPrint(data interface{}) string {
 	return string(p)
 }
 
-func loadConfig() models.Config {
-	configPath := os.Getenv("CONFIG_PATH")
-	if configPath == "" {
-		log.Fatal().Msg("CONFIG_PATH environment variable is not set")
-	}
-
-	jsonFile, err := os.Open(configPath)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Error opening config file")
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Error reading config file")
-	}
-
-	var cfg models.Config
-	if err := json.Unmarshal(byteValue, &cfg); err != nil {
-		log.Fatal().Err(err).Msg("Error unmarshalling config")
-	}
-
-	return cfg
+func loadConfig() (cfg models.Config) {
+	cfg.DB = os.Getenv("DB")
+	cfg.Passphrase = os.Getenv("PASSPHRASE")
+	return
 }
+
+// func loadConfig() models.Config {
+// 	configPath := os.Getenv("CONFIG_PATH")
+// 	if configPath == "" {
+// 		log.Fatal().Msg("CONFIG_PATH environment variable is not set")
+// 	}
+//
+// 	jsonFile, err := os.Open(configPath)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("Error opening config file")
+// 	}
+// 	defer jsonFile.Close()
+//
+// 	byteValue, err := io.ReadAll(jsonFile)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("Error reading config file")
+// 	}
+//
+// 	var cfg models.Config
+// 	if err := json.Unmarshal(byteValue, &cfg); err != nil {
+// 		log.Fatal().Err(err).Msg("Error unmarshalling config")
+// 	}
+//
+// 	return cfg
+// }
 
 func getConfig() models.Config {
 	once.Do(func() {

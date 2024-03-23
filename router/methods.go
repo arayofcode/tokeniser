@@ -42,7 +42,7 @@ func (rc *routerConfig) StartAPI() {
 	rc.setupRoutes()
 
 	for _, route := range rc.router.Routes() {
-		log.Info().Msg(fmt.Sprintf("%s\t\t%s", route.Method, route.Path))
+		log.Debug().Msg(fmt.Sprintf("%-4s\t%s", route.Method, route.Path))
 	}
 
 	defer log.Info().Msgf("API Running at port: %d", port)
