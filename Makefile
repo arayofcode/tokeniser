@@ -1,18 +1,14 @@
 BINARY_NAME=tokeniser
 BINARY_PATH=bin/${BINARY_NAME}
-PLATFORMS=darwin linux windows
-ARCH=amd64
+DB_URL ?= $(DATABASE_URL)
 
-.PHONY: build run test clean dep vet lint
+.PHONY: build run test clean dep vet lint migrate-up migrate-down
 
 build:
-	@for os in $(PLATFORMS); do \
-		echo "Building for $$os/$(ARCH)"; \
-		GOARCH=$(ARCH) GOOS=$$os go build -o $(BINARY_PATH)-$$os; \
-	done
+	@go build -v -o ${BINARY_PATH} ./...
 
-run: build
-	@./$(BINARY_PATH)-darwin || ./$(BINARY_PATH)-linux
+run: dep build
+	@./$(BINARY_PATH)
 
 test:
 	go test ./... -v -coverprofile=coverage.out
@@ -20,12 +16,19 @@ test:
 clean:
 	@echo "Cleaning up..."
 	@go clean
-	@rm -f $(BINARY_PATH)-*
+	@rm -f $(BINARY_PATH)
 
 dep:
 	@go mod download
+	@go mod verify
 
 vet:
-	go vet ./...
+	@go vet -v ./...
 
 format: vet
+
+migrate-up:
+	migrate -path database/migration -database "$(DB_URL)" up
+
+migrate-down:
+	migrate -path database/migration -database "$(DB_URL)" down

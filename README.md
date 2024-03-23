@@ -1,3 +1,82 @@
+# Tokeniser
+
+A Golang + Postgres app that allows one to tokenise sensitive information. This personal project is aimed at teaching myself backend engineering, SRE, practical cryptography, and compliance. 
+
+## Setting Up
+
+### Setting database
+
+For now, setting up requires you to manually setup a database using `database/migration/0001_initial_schema_up.sql`. The approach is lengthy and I intend to automate it in the future. I'm assuming you already have postgres installed and running. If not, check the [documentation](https://www.postgresql.org/). Follow these steps to setup the DB:
+
+- Login to PostgreSQL using `psql`
+  ```bash
+  $ psql -U postgres
+  ```
+- Create database. Replace `tokeniser_db` with database name of choice
+  ```sql
+  CREATE DATABASE tokeniser_db
+  ```
+- Exit PostgreSQL, and apply the migration script:
+  ```bash
+  $ psql -U postgres -d tokeniser_db -f 0001_initial_schema.up.sql
+  ```
+- Verify if the schema and triggers exist. Login to PSQL again:
+  ```bash
+  $ psql -U postgres -d tokeniser_db
+  ```
+  Run these commands to verify if the `credit_cards` table and the functions have been created: `\dt` and `\df`
+
+- Once done, setup a new user for accessing the database. Start by logging into Postgres using psql
+  ```bash
+  $ psql -U postgres
+  ```
+- Once logged in, type the following commands, replace username and password with your choices:
+  ```sql
+  CREATE USER user WITH PASSWORD 'password';
+  GRANT ALL PRIVILEGES ON DATABASE tokeniser_db TO user;
+  ```
+- Now, allow your app to connect with Postgres by editing `pg_hba.conf` and `postgresql.conf` files. Their location can be found by running 
+   ```bash
+   $ psql -U user -d tokeniser_db -c "show config_file; show hba_file"
+   ```
+- In `postgresql.conf`, set the `listen_addresses` line to listen to the right IP address. You can consider keeping it following (insecure method though):
+  ```
+  listen_addresses = '*'
+  ```
+- In `pg_hba.conf` file, add a new line that allows the created user to connect using password:
+  ```
+  # TYPE  DATABASE      USER  ADDRESS      METHOD
+    host  tokeniser_db  user  127.0.0.1/32  md5
+    host  tokeniser_db  user   ::1/128      md5
+  ```
+- Restart postgresql then verify if the new configuration works:
+  ```bash
+  $ sudo systemctl restart postgresql
+  $ psql -U user -d tokeniser_db -h localhost
+  ```
+
+### Running the service
+
+There is a makefile to help make things easier. Just go to the directory containing Makefile and type 
+
+```bash 
+$ make
+```
+
+Once done, setup two environment variables: `DB` and `PASSPHRASE`. You can set them up using following commands:
+```bash
+$ export DB="postgres://user:password@localhost:5432/tokeniser_db?sslmode=disable"
+$ export PASSPHRASE="oh-my-password"
+```
+
+For now, SSL has not been enabled so adding the parameter is necessary. 
+<!-- Format
+```
+
+``` -->
+
+The passphrase is a string that you're using to setup encryption. 
+
 ## Workflow
 User --> API --> Handler --> Database Handler -> Database
 
