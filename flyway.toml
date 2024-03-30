@@ -1,0 +1,8 @@
+[environments.default]
+driver = "org.postgresql.Driver"
+
+[flyway]
+locations = ["filesystem:./database/migration"]
+
+[flyway.postgresql.transactional]
+lock = false
