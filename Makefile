@@ -7,7 +7,7 @@ DB_URL ?= $(DATABASE_URL)
 build:
 	@go build -v -o ${BINARY_PATH} ./...
 
-run: dep build
+run: dep build migrate-up
 	@./$(BINARY_PATH)
 
 test:

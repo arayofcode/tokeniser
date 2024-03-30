@@ -1,5 +1,5 @@
 -- Create the credit_cards table
-CREATE TABLE IF NOT EXISTS public.credit_cards (
+CREATE TABLE IF NOT EXISTS credit_cards (
     id SERIAL PRIMARY KEY,
     token UUID DEFAULT gen_random_uuid() NOT NULL,
     cardholder_name VARCHAR(255) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.credit_cards (
 );
 
 -- Create the update_modified_column() function
-CREATE FUNCTION IF NOT EXISTS public.update_modified_column() RETURNS trigger
+CREATE OR REPLACE FUNCTION update_modified_column() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -23,7 +23,7 @@ END;
 $$;
 
 -- Create a trigger to automatically update the updated_at column
-CREATE TRIGGER IF NOT EXISTS update_credit_cards_modtime
-    BEFORE UPDATE ON public.credit_cards
+CREATE OR REPLACE TRIGGER update_credit_cards_modtime
+    BEFORE UPDATE ON credit_cards
     FOR EACH ROW
-    EXECUTE FUNCTION public.update_modified_column();
+    EXECUTE FUNCTION update_modified_column();
