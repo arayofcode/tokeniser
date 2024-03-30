@@ -32,8 +32,15 @@ var (
 
 func configInit() {
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		validate.RegisterValidation("expirydate", common.ExpiryDateMMYY)
-		validate.RegisterValidation("notallzero", common.NotAllZero)
+		err := validate.RegisterValidation("expirydate", common.ExpiryDateMMYY)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to register 'expirydate' validation")
+		}
+
+		err = validate.RegisterValidation("notallzero", common.NotAllZero)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to register 'notallzero' validation")
+		}
 	}
 	databaseUrl := common.GetDbURL()
 	db = database.DatabaseInit(databaseUrl)

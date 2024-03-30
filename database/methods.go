@@ -115,7 +115,11 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID)
 		log.Error().Err(err).Msg("Failed to start transaction")
 		return false
 	}
-	defer transaction.Rollback(ctx)
+	defer func() {
+		if err := transaction.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
+			log.Error().Err(err).Msg("Failed to rollback transaction")
+		}
+	}()
 
 	cmdTag, err := transaction.Exec(ctx, "DELETE FROM credit_cards WHERE token=$1", token)
 	if err != nil {

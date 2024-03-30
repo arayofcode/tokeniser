@@ -1,6 +1,5 @@
 FROM golang:1.22-alpine as build
 
-
 WORKDIR /build
 COPY . .
 RUN apk add --no-cache make
