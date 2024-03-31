@@ -1,0 +1,69 @@
+{
+	"info": {
+		"_postman_id": "36f7e9ce-e2e1-43a5-8e21-557b30656298",
+		"name": "Tokeniser",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13500275"
+	},
+	"item": [
+		{
+			"name": "Get All Tokens",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/v1/tokens/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"tokens",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Token",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"request_id\": \"some-random-request-id\",\n    \"card\": {\n        \"cardholder_name\": \"Tamato Rolli\",\n        \"card_number\": \"378282246310005\",\n        \"expiry_date\": \"1226\" // MMYY\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/v1/tokens/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"tokens",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Card Data From Token",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
