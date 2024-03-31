@@ -16,7 +16,7 @@ import (
 
 func (rc *routerConfig) setupRoutes() {
 	rc.router.GET("/ping", rc.handlePing)
-	
+
 	v1 := rc.router.Group("/v1")
 	tokens := v1.Group("/tokens")
 	{

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arayofcode/tokeniser/cipher"

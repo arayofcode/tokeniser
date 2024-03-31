@@ -13,7 +13,7 @@ $(BINARY_PATH):
 
 .PHONY: build run test clean dep vet format migrate-up migrate-down lint help
 
-build: $(BINARY_PATH)
+build: clean format vet lint dep migrate-up $(BINARY_PATH)
 	@echo "Building $(BINARY_NAME)"
 	@go build -v -o $(BINARY_PATH) ./...
 
@@ -28,7 +28,7 @@ test:
 clean:
 	@echo "Cleaning up"
 	@go clean
-	@rm -f $(BINARY_PATH) coverage.out
+	@rm -rf $(BINARY_PATH) coverage.out
 
 dep:
 	@echo "Verifying and downloading dependencies"

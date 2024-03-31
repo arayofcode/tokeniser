@@ -24,7 +24,7 @@ func init() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to register 'expirydate' validation")
 		}
-		
+
 		err = validate.RegisterValidation("notallzero", common.NotAllZero)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to register 'notallzero' validation")
