@@ -3,31 +3,36 @@
 -include $(wildcard .env)
 
 BINARY_NAME=tokeniser
-BINARY_PATH=bin/$(BINARY_NAME)
+BINARY_PATH=$(CURDIR)/bin/
+
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(DATABASE_NAME)?sslmode=disable
 FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(DATABASE_NAME)
 
-.PHONY: build run test clean dep vet format migrate-up migrate-down help lint
+$(BINARY_PATH):
+	@mkdir -p $@
 
-build:
-	@echo "Building"
+.PHONY: build run test clean dep vet format migrate-up migrate-down lint help
+
+build: $(BINARY_PATH)
+	@echo "Building $(BINARY_NAME)"
 	@go build -v -o $(BINARY_PATH) ./...
 
 run: dep build migrate-up
 	@echo "Running $(BINARY_NAME)"
-	@./$(BINARY_PATH)
+	@DB=$(DB_URL) PASSPHRASE=$(PASSPHRASE) $(BINARY_PATH)/$(BINARY_NAME)
 
 test:
 	@echo "Running tests"
 	@go test ./... -v -coverprofile=coverage.out
 
 clean:
-	@echo "Cleaning up the binaries and test coverage results file"
+	@echo "Cleaning up"
 	@go clean
-	@$(RM) -f $(BINARY_PATH) coverage.out
+	@rm -f $(BINARY_PATH) coverage.out
 
 dep:
 	@echo "Verifying and downloading dependencies"
+	@go mod tidy
 	@go mod download
 	@go mod verify
 
@@ -51,13 +56,13 @@ lint:
 
 help:
 	@echo "Available commands:"
-	@echo "  build          Build the application."
-	@echo "  run            Run the application."
-	@echo "  dep            Download and verify dependencies."
-	@echo "  test           Run tests."
-	@echo "  lint           Run lint check"
-	@echo "  clean          Clean up the project."
-	@echo "  vet            Run go vet."
-	@echo "  format         Format the code."
-	@echo "  migrate-up     Apply database migrations."
-	@echo "  migrate-down   Undo the last database migration (Not yet implemented)."
+	@echo "  build         Build the application."
+	@echo "  run           Run the application."
+	@echo "  dep           Download and verify dependencies."
+	@echo "  test          Run tests."
+	@echo "  lint          Run lint check."
+	@echo "  clean         Clean up the project."
+	@echo "  vet           Run go vet."
+	@echo "  format        Format the code."
+	@echo "  migrate-up    Apply database migrations."
+	@echo "  migrate-down  Undo the last database migration (Not yet implemented)."
