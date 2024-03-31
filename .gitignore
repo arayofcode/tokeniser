@@ -2,5 +2,6 @@
 bin/
 .DS_Store
 *.json
+!tokeniser.postman_collection.json
 *.out
 *.env
