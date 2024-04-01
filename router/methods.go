@@ -42,7 +42,7 @@ func (rc *routerConfig) StartAPI() {
 	rc.setupRoutes()
 
 	for _, route := range rc.router.Routes() {
-		log.Debug().Msg(fmt.Sprintf("%-4s\t%s", route.Method, route.Path))
+		log.Info().Msg(fmt.Sprintf("%-4s\t%s", route.Method, route.Path))
 	}
 
 	defer log.Info().Msgf("API Running at port: %d", port)
@@ -108,22 +108,28 @@ func (rc *routerConfig) handleDetokenise(c *gin.Context) {
 		return
 	}
 
-	cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
-	if err != nil {
-		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
-		return
+	if len(response.Card.CardNumberEncrypted) > 0 {
+		cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
+		if err != nil {
+			log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
+			return
+		}
+		response.Card.CardNumber = string(cardNumberByte)
 	}
-	response.Card.CardNumber = string(cardNumberByte)
 
-	expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
-	if err != nil {
-		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
-		return
+	if len(response.Card.ExpiryDateEncrypted) > 0 {
+		expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
+		if err != nil {
+			log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
+			return
+		}
+		response.Card.ExpiryDate = string(expiryDateByte)
 	}
-	response.Card.ExpiryDate = string(expiryDateByte)
-	response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
+	if len(response.Card.ExpiryDate) > 0 {
+		response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
+	}
 
 	c.JSON(http.StatusOK, response)
 }
@@ -216,16 +222,20 @@ func (rc *routerConfig) handleAll(c *gin.Context) {
 		}
 	} else {
 		for i, card := range cards {
+			log.Info().Msg("Decrypting Card Number")
 			cardNumberDecryptedByte, err := rc.cipher.Decrypt(card.CardNumberEncrypted)
 			if err != nil {
 				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt card number")
 				continue
 			}
+
+			log.Info().Msg("Decrypting Expiry Date")
 			expiryDateDecryptedByte, err := rc.cipher.Decrypt(card.ExpiryDateEncrypted)
 			if err != nil {
 				log.Error().Err(err).Str("cardID", card.Token.String()).Msg("Failed to decrypt expiry date")
 				continue
 			}
+
 			cards[i].CardNumber = string(cardNumberDecryptedByte)
 			expiryDate := string(expiryDateDecryptedByte)
 			cards[i].ExpiryDate = expiryDate[:2] + "/" + expiryDate[2:]
@@ -257,21 +267,27 @@ func (rc *routerConfig) handleUnmask(c *gin.Context) {
 		return
 	}
 
-	cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
-	if err != nil {
-		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
-		return
+	if len(response.Card.CardNumberEncrypted) > 0 {
+		cardNumberByte, err := rc.cipher.Decrypt(response.Card.CardNumberEncrypted)
+		if err != nil {
+			log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting card number")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
+			return
+		}
+		response.Card.CardNumber = string(cardNumberByte)
 	}
-	response.Card.CardNumber = string(cardNumberByte)
 
-	expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
-	if err != nil {
-		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
-		return
+	if len(response.Card.ExpiryDateEncrypted) > 0 {
+		expiryDateByte, err := rc.cipher.Decrypt(response.Card.ExpiryDateEncrypted)
+		if err != nil {
+			log.Error().Err(err).Str("token", payload.Token.String()).Msg("Error decrypting expiry date")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failure"})
+			return
+		}
+		response.Card.ExpiryDate = string(expiryDateByte)
 	}
-	response.Card.ExpiryDate = string(expiryDateByte)
-	response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
+	if len(response.Card.ExpiryDate) > 0 {
+		response.Card.ExpiryDate = response.Card.ExpiryDate[:2] + "/" + response.Card.ExpiryDate[2:]
+	}
 	c.JSON(http.StatusFound, response)
 }

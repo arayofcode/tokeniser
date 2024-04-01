@@ -89,6 +89,8 @@ User --> API --> Handler --> Database Handler -> Database
 - Decryption process follows similar pattern: derive salt, nonce and ciphertext. Use those values to obtain plaintext.
 
 ## Next steps:
+- Tests and Makefile are broken given there's a change in network of database. 
+- Setup dev, testing, and prod all using make (prod done, use `make start` or `make start-clean` for fresh build)
 - Deployment of the API
 - Improve performance. /all API takes 7 seconds for 15 cards. Setup concurrency.
 - Better way for in-memory storage of sensitive information. Check this library: https://github.com/awnumar/memguard
@@ -132,3 +134,28 @@ I'm not sure if I'd actually use GCP to deploy it (because it costs money :P) bu
 - Change the "cipher" package name as well? It's clashing with another package that you're using
 - Invalid expiry dates or credit card numbers would still work through dependency injection (using test cases)
   - Validate before encrypting and storing them
+- Use `make` to create container, or run `make` commands within the containers?
+
+## Useful References (aside from the documentation of tools):
+- [One2N's SRE Bootcamp](https://playbook.one2n.in/sre-bootcamp): found most references there
+- [Memguard](https://github.com/awnumar/memguard): For Memory-safe 
+- [12 Factor Apps](https://12factor.net/)
+- [Practical Cryptography in Go](https://leanpub.com/gocrypto/read)
+- [PBKDF2 (Password Based Key Derivation Function)](https://en.wikipedia.org/wiki/PBKDF2)
+- [Credit Card Numbers for Testing](https://www.paypalobjects.com/en_AU/vhelp/paypalmanager_help/credit_card_numbers.htm)
+- [Docker Multistage Build](https://youtu.be/2QMoLyfIJx8?si=1EOyYpQytOaT_kas)
+- [Creating a Postman Collection](https://youtu.be/NlrPjuXEaZ8?si=MAPg9KVYG5PogJmu)
+- [Docker and Postgres with Persistent Data](https://youtu.be/G3gnMSyX-XM?si=ycVqtlaGYHmN7bjg)
+- [Docker Networking](https://www.youtube.com/watch?v=OU6xOM0SE4o&ab_channel=HusseinNasser)
+
+## Packages used during local development
+
+```
+make=4.4
+golang=1.22
+flyway-oss=10.10
+postgres=16.2
+docker=26.0.0
+docker-compose=2.26.0
+hadolint
+```

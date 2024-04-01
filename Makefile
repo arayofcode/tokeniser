@@ -5,25 +5,31 @@
 BINARY_NAME=tokeniser
 BINARY_PATH=$(CURDIR)/bin/
 
-DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(DATABASE_NAME)?sslmode=disable
-FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(DATABASE_NAME)
+DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+
+.PHONY: all build run test clean dep vet format migrate-up migrate-down lint help
+
+build: clean dep $(BINARY_PATH)
+	@echo "Building $(BINARY_NAME)"
+	@go build -v -o $(BINARY_PATH) ./...
 
 $(BINARY_PATH):
 	@mkdir -p $@
-
-.PHONY: build run test clean dep vet format migrate-up migrate-down lint help
-
-build: clean format vet lint dep migrate-up $(BINARY_PATH)
-	@echo "Building $(BINARY_NAME)"
-	@go build -v -o $(BINARY_PATH) ./...
 
 run: dep build migrate-up
 	@echo "Running $(BINARY_NAME)"
 	@DB=$(DB_URL) PASSPHRASE=$(PASSPHRASE) $(BINARY_PATH)/$(BINARY_NAME)
 
+start:
+	@docker compose up -d
+
+start-clean:
+	@docker compose up --build -d
+
 test:
 	@echo "Running tests"
-	@go test ./... -v -coverprofile=coverage.out
+	@DB=$(DB_URL) go test ./... -v -coverprofile=coverage.out
 
 clean:
 	@echo "Cleaning up"
@@ -56,6 +62,8 @@ lint:
 
 help:
 	@echo "Available commands:"
+	@echo "  start         Start the application."
+	@echo "  start-clean   Rebuild all images and start the application."
 	@echo "  build         Build the application."
 	@echo "  run           Run the application."
 	@echo "  dep           Download and verify dependencies."
