@@ -90,7 +90,7 @@ User --> API --> Handler --> Database Handler -> Database
 
 ## Next steps:
 - Tests and Makefile are broken given there's a change in network of database. 
-- Setup dev, testing, and prod all using make (prod done, use `make prod` or `make prod-new` for fresh build)
+- Setup dev, testing, and prod all using make (prod done, use `make start` or `make start-clean` for fresh build)
 - Deployment of the API
 - Improve performance. /all API takes 7 seconds for 15 cards. Setup concurrency.
 - Better way for in-memory storage of sensitive information. Check this library: https://github.com/awnumar/memguard

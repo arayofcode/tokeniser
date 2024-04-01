@@ -21,12 +21,11 @@ run: dep build migrate-up
 	@echo "Running $(BINARY_NAME)"
 	@DB=$(DB_URL) PASSPHRASE=$(PASSPHRASE) $(BINARY_PATH)/$(BINARY_NAME)
 
-prod:
-	@docker compose up
+start:
+	@docker compose up -d
 
-prod-new:
-	@docker compose down
-	@docker compose up --build
+start-clean:
+	@docker compose up --build -d
 
 test:
 	@echo "Running tests"
@@ -63,6 +62,8 @@ lint:
 
 help:
 	@echo "Available commands:"
+	@echo "  start         Start the application."
+	@echo "  start-clean   Rebuild all images and start the application."
 	@echo "  build         Build the application."
 	@echo "  run           Run the application."
 	@echo "  dep           Download and verify dependencies."

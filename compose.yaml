@@ -32,7 +32,7 @@ services:
   flyway:
     image: flyway/flyway:10.10
     volumes:
-      - ./database/migration:/flyway/sql
+      - ./database/migration:/migrations
     depends_on:
       - db
     environment:
@@ -41,6 +41,7 @@ services:
       FLYWAY_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
       FLYWAY_DRIVER: org.postgresql.Driver
+      FLYWAY_LOCATIONS: filesystem:/migrations
 
     command: migrate
 
