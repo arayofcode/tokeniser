@@ -7,7 +7,7 @@ services:
     depends_on:
       - flyway
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - PASSPHRASE
       - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
@@ -29,10 +29,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    ports:
-      - "5432:5432"
     networks:
       - vault-network
+      - operations-management
 
   flyway:
     image: flyway/flyway:10.10
@@ -48,7 +47,7 @@ services:
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
     networks:
-      - vault-network
+      - operations-management
     command: migrate
 
 volumes:
@@ -56,4 +55,8 @@ volumes:
 
 networks:
   vault-network:
+    internal: true
   backend-network:
+    internal: true
+  operations-management: # To separate operational traffic from external traffic
+    internal: true
