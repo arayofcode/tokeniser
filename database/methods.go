@@ -81,6 +81,7 @@ func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.U
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Info().Str("token", token.String()).Msg("No card found with the given token")
+			err = nil
 		} else {
 			log.Error().Err(err).Str("token", token.String()).Msg("Failed to retrieve card details")
 		}

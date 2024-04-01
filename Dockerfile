@@ -2,9 +2,8 @@ FROM golang:1.22-alpine as build
 
 WORKDIR /build
 COPY . .
-RUN apk add --no-cache make=4.4
-RUN make dep
-RUN make build
+RUN apk add --no-cache make~4.4
+RUN make
 
 FROM gcr.io/distroless/static-debian12
 

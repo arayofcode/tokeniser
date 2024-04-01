@@ -51,7 +51,6 @@ func (h *HandlerData) HandleDetokenise(ctx context.Context, payload models.Detok
 func (h *HandlerData) GetAllCards(ctx context.Context) ([]models.CreditCardRow, error) {
 	cards, err := h.db.ShowAllCards(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to retrieve all cards")
 		return nil, err
 	}
 
