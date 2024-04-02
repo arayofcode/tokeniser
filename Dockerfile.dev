@@ -1,0 +1,6 @@
+FROM golang:1.22-alpine
+
+WORKDIR /build
+COPY . .
+RUN apk add --no-cache make golangci-lint
+RUN make dep

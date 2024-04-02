@@ -1,29 +1,43 @@
-name: tokeniser
+name: tokeniser-dev
 services:
-  app:
+  app-dev:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
     depends_on:
-      db:
+      db-dev:
         condition: service_healthy
         restart: true
-      flyway:
+      flyway-dev:
         condition: service_completed_successfully
     ports:
       - "127.0.0.1:8080:8080"
     environment:
       - PASSPHRASE
-      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
     networks:
-      - backend-network
-      - vault-network
+      - dev-backend-network
+      - dev-vault-network
+    command: go run main.go
+    develop:
+      watch:
+        - action: sync+restart
+          path: .
+          target: /app
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
+        - action: rebuild
+          path: Dockerfile.dev
+        - action: rebuild
+          path: compose.dev.yaml
 
-  db:
+  db-dev:
     image: postgres:16.2-alpine3.19
     restart: always
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dev-pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -34,34 +48,35 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - vault-network
-      - operations-management
+      - dev-vault-network
+      - dev-operations-management
     expose:
       - 5432
 
-  flyway:
+  flyway-dev:
     image: flyway/flyway:10.10
     volumes:
       - ./database/migration:/migrations
     depends_on:
-      - db
+      db-dev:
+        condition: service_healthy
     environment:
       FLYWAY_USER: ${POSTGRES_USER}
       FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
-      FLYWAY_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      FLYWAY_URL: jdbc:postgresql://db-dev:5432/${POSTGRES_DB}
       FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
     networks:
-      - operations-management
+      - dev-operations-management
     command: migrate
 
 volumes:
-  pgdata:
+  dev-pgdata:
 
 networks:
-  vault-network:
+  dev-vault-network:
     internal: true
-  backend-network:
-  operations-management: # To separate operational traffic from external traffic
+  dev-backend-network:
+  dev-operations-management: # To separate operational traffic from external traffic
     internal: true
