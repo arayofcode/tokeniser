@@ -36,7 +36,7 @@ func (rc *routerConfig) setupRoutes() {
 }
 
 func (rc *routerConfig) StartAPI() {
-	port := 8080
+	port := os.Getenv("PORT")
 	rc.router.LoadHTMLGlob("router/templates/*")
 	rc.router.Static("/static", "router/static")
 	rc.setupRoutes()
@@ -45,9 +45,9 @@ func (rc *routerConfig) StartAPI() {
 		log.Info().Msg(fmt.Sprintf("%-4s\t%s", route.Method, route.Path))
 	}
 
-	defer log.Info().Msgf("API Running at port: %d", port)
+	log.Info().Msgf("Attempting run at port: %s", port)
 
-	if err := rc.router.Run(fmt.Sprintf(":%d", port)); err != nil {
+	if err := rc.router.Run(":" + port); err != nil {
 		log.Fatal().Err(err).Msg("Failed to start the server")
 	}
 }

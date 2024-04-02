@@ -11,9 +11,10 @@ services:
       flyway-dev:
         condition: service_completed_successfully
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${PORT}:${PORT}"
     environment:
       - PASSPHRASE
+      - PORT
       - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
     networks:
       - dev-backend-network

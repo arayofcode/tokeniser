@@ -5,8 +5,8 @@
 BINARY_NAME=tokeniser
 BINARY_PATH=$(CURDIR)/bin/
 
-DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
-FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+# DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+# FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
 
 .PHONY: all build run test clean dep vet format migrate-up migrate-down lint help
 
@@ -31,10 +31,10 @@ stop:
 	@docker compose stop
 
 dev:
-	@docker compose -f compose.dev.yaml watch
+	@docker compose -f compose.dev.yaml watch -d
 
 stop-dev:
-	@docker compose -f compose.dev.yaml stop
+	@docker compose -f compose.dev.yaml stop -d
 
 test:
 	@echo "Running tests"
@@ -73,6 +73,9 @@ help:
 	@echo "Available commands:"
 	@echo "  start         Start the application."
 	@echo "  start-clean   Rebuild all images and start the application."
+	@echo "  stop		   Stop the running containers for production app."
+	@echo "  dev		   Run the local development setup. Allows hot reloading."
+	@echo "  stop-dev	   Stop the local development setup."
 	@echo "  build         Build the application."
 	@echo "  run           Run the application."
 	@echo "  dep           Download and verify dependencies."
