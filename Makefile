@@ -27,6 +27,15 @@ start:
 start-clean:
 	@docker compose up --build -d
 
+stop:
+	@docker compose stop
+
+dev:
+	@docker compose -f compose.dev.yaml watch
+
+stop-dev:
+	@docker compose -f compose.dev.yaml stop
+
 test:
 	@echo "Running tests"
 	@DB=$(DB_URL) go test ./... -v -coverprofile=coverage.out
