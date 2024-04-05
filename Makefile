@@ -12,7 +12,7 @@ BINARY_PATH=$(CURDIR)/bin/
 
 build: clean dep $(BINARY_PATH)
 	@echo "Building $(BINARY_NAME)"
-	@go build -v -o $(BINARY_PATH) ./...
+	@CGO_ENABLED=0 GOOS=linux go build -v -o $(BINARY_PATH) ./...
 
 $(BINARY_PATH):
 	@mkdir -p $@
@@ -25,16 +25,16 @@ start:
 	@docker compose up -d
 
 start-clean:
-	@docker compose up --build -d
+	@docker compose up --build -d 
 
 stop:
 	@docker compose stop
 
 dev:
-	@docker compose -f compose.dev.yaml watch -d
+	@docker compose -f compose.dev.yaml watch
 
 stop-dev:
-	@docker compose -f compose.dev.yaml stop -d
+	@docker compose -f compose.dev.yaml stop
 
 test:
 	@echo "Running tests"

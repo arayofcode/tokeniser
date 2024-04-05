@@ -23,16 +23,18 @@ services:
     develop:
       watch:
         - action: sync+restart
-          path: .
+          path: src/
           target: /app
         - action: rebuild
-          path: go.mod
+          path: src/go.mod
         - action: rebuild
-          path: go.sum
+          path: src/go.sum
         - action: rebuild
           path: Dockerfile.dev
         - action: rebuild
           path: compose.dev.yaml
+        - action: rebuild
+          path: Makefile
 
   db-dev:
     image: postgres:16.2-alpine3.19
@@ -44,7 +46,7 @@ services:
       - POSTGRES_PASSWORD
       - POSTGRES_DB
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -57,7 +59,7 @@ services:
   flyway-dev:
     image: flyway/flyway:10.10
     volumes:
-      - ./database/migration:/migrations
+      - ./migrations/migration:/migrations
     depends_on:
       db-dev:
         condition: service_healthy
