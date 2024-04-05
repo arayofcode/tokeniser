@@ -2,10 +2,10 @@ FROM golang:1.22-alpine as build
 
 WORKDIR /build
 RUN apk add make
-COPY go.* .
+COPY src/go.* .
 COPY Makefile .
 RUN make dep
-COPY . .
+COPY src/ .
 RUN make
 
 FROM gcr.io/distroless/static-debian12
