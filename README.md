@@ -16,6 +16,8 @@ POSTGRES_DB=my-database-name
 PORT=8080
 ```
 
+You can rename the `.env.example` file to `.env` and use it as well. However, please know that the default credentials aren't very secure, and you'll put yourself at risk.
+
 The project uses a Makefile for setting up and running everything. To see all commands available, run the following in your terminal:
 
 ```console

@@ -22,10 +22,10 @@ run: dep build migrate-up
 	@DB=$(DB_URL) PASSPHRASE=$(PASSPHRASE) $(BINARY_PATH)/$(BINARY_NAME)
 
 start:
-	@docker compose up -d
+	@docker compose up --remove-orphans -d
 
 start-clean:
-	@docker compose up --build -d 
+	@docker compose up --build --remove-orphans --force-recreate -d 
 
 stop:
 	@docker compose stop
