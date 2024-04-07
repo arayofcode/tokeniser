@@ -3,8 +3,8 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/arayofcode/tokeniser/cipher"
-	"github.com/arayofcode/tokeniser/handler"
+	"github.com/arayofcode/tokeniser/src/cipher"
+	"github.com/arayofcode/tokeniser/src/handler"
 )
 
 type routerConfig struct {

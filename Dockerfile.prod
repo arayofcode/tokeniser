@@ -2,17 +2,18 @@ FROM golang:1.22-alpine as build
 
 WORKDIR /build
 RUN apk add make
-COPY src/go.* .
+COPY go.* .
 COPY Makefile .
 RUN make dep
-COPY src/ .
+COPY main.go .
+COPY src/ ./src/
 RUN make
 
 FROM gcr.io/distroless/static-debian12
 
 WORKDIR /app
 COPY --from=build /build/bin/tokeniser .
-COPY --from=build /build/router/templates router/templates
-COPY --from=build /build/router/static router/static
+COPY --from=build /build/src/router/templates ./src/router/templates
+COPY --from=build /build/src/router/static ./src/router/static
 
 CMD [ "/app/tokeniser" ]

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"

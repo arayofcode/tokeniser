@@ -3,7 +3,7 @@ package cipher
 import (
 	"testing"
 
-	"github.com/arayofcode/tokeniser/common"
+	"github.com/arayofcode/tokeniser/src/common"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 type databaseConfig struct {

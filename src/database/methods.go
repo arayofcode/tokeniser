@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
