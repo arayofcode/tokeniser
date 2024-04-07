@@ -2,7 +2,7 @@ FROM golang:1.22-alpine
 
 WORKDIR /app
 RUN apk add make golangci-lint
-COPY src/go.* .
+COPY go.* .
 COPY Makefile .
 RUN make dep
-COPY src/ .
+COPY src/ ./src/

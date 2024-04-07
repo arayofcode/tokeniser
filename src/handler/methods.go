@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 func (h *HandlerData) HandleTokenise(ctx context.Context, newPayload models.TokenisePayload) (response models.TokeniseCardResponse, err error) {

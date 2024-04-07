@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const cardNumberPlaceholder = dataItem.querySelector(`#cardNumber${token}`);
             const expiryDatePlaceholder = dataItem.querySelector(`#expiryDate${token}`);
 
-            fetch('/unmask', {
+            fetch('/forms/unmask', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

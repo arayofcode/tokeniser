@@ -16,11 +16,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/arayofcode/tokeniser/cipher"
-	"github.com/arayofcode/tokeniser/common"
-	"github.com/arayofcode/tokeniser/database"
-	"github.com/arayofcode/tokeniser/handler"
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/cipher"
+	"github.com/arayofcode/tokeniser/src/common"
+	"github.com/arayofcode/tokeniser/src/database"
+	"github.com/arayofcode/tokeniser/src/handler"
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 var (

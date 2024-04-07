@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/arayofcode/tokeniser/common"
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/common"
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 func (rc *routerConfig) setupRoutes() {
@@ -37,8 +37,8 @@ func (rc *routerConfig) setupRoutes() {
 
 func (rc *routerConfig) StartAPI() {
 	port := os.Getenv("PORT")
-	rc.router.LoadHTMLGlob("router/templates/*")
-	rc.router.Static("/static", "router/static")
+	rc.router.LoadHTMLGlob("src/router/templates/*")
+	rc.router.Static("/static", "src/router/static")
 	rc.setupRoutes()
 
 	for _, route := range rc.router.Routes() {

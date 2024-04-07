@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 
-	"github.com/arayofcode/tokeniser/database"
-	"github.com/arayofcode/tokeniser/models"
+	"github.com/arayofcode/tokeniser/src/database"
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 type Handler interface {
