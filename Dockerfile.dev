@@ -4,5 +4,6 @@ WORKDIR /app
 RUN apk add make golangci-lint
 COPY go.* .
 COPY Makefile .
-RUN make dep
+COPY main.go .
 COPY src/ ./src/
+RUN make dep

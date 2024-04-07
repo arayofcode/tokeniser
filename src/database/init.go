@@ -2,14 +2,16 @@ package database
 
 import (
 	"context"
+	"github.com/rs/zerolog/log"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/arayofcode/tokeniser/src/models"
 )
 
 type databaseConfig struct {
-	DB_URL string
+	dbPool *pgxpool.Pool
 }
 
 type Database interface {
@@ -20,7 +22,14 @@ type Database interface {
 }
 
 func DatabaseInit(DB_URL string) Database {
+	pool, err := pgxpool.New(context.Background(), DB_URL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to connect to database")
+	}
+
+	log.Debug().Int32("max_idle_connections", pool.Stat().MaxConns()).Msg("Connection established")
+
 	return &databaseConfig{
-		DB_URL: DB_URL,
+		dbPool: pool,
 	}
 }
