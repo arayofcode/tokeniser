@@ -30,7 +30,8 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-      - run: ls
+      - name: Checking directory
+        run: ls
       - name: Run tests
         run: make test
 
