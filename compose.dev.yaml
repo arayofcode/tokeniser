@@ -15,13 +15,16 @@ services:
     environment:
       - PASSPHRASE
       - PORT
-      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&pool_max_conns=10
     networks:
       - dev-backend-network
       - dev-vault-network
     command: go run main.go
     develop:
       watch:
+        - action: sync+restart
+          path: main.go
+          target: /app
         - action: sync+restart
           path: src/
           target: /app
