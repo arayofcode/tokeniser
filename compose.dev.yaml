@@ -11,14 +11,12 @@ services:
       flyway-dev:
         condition: service_completed_successfully
     ports:
-      - "127.0.0.1:${PORT}:${PORT}"
+      - "${HOST}:${PORT}:${PORT}"
     environment:
       - PASSPHRASE
       - PORT
-      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
-    networks:
-      - dev-backend-network
-      - dev-vault-network
+      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&pool_max_conns=10
+    network_mode: host
     command: go run main.go
     develop:
       watch:
@@ -50,11 +48,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - dev-vault-network
-      - dev-operations-management
-    expose:
-      - 5432
+    network_mode: host
+    ports:
+      - "${POSTGRES_HOST}:${POSTGRES_PORT}:${POSTGRES_PORT}"
 
   flyway-dev:
     image: flyway/flyway:10.10
@@ -66,20 +62,23 @@ services:
     environment:
       FLYWAY_USER: ${POSTGRES_USER}
       FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
-      FLYWAY_URL: jdbc:postgresql://db-dev:5432/${POSTGRES_DB}
+      FLYWAY_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
-    networks:
-      - dev-operations-management
+    network_mode: host
     command: migrate
+    develop:
+      watch:
+        - action: sync+restart
+          path: migrations/
+          target: /migrations
+        - action: sync+restart
+          path: compose.dev.yaml
+          target: /migrations
+        - action: sync+restart
+          path: Dockerfile.dev
+          target: /migrations 
 
 volumes:
   dev-pgdata:
-
-networks:
-  dev-vault-network:
-    internal: true
-  dev-backend-network:
-  dev-operations-management: # To separate operational traffic from external traffic
-    internal: true

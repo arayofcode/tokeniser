@@ -30,7 +30,7 @@ func (h *HandlerData) HandleTokenise(ctx context.Context, newPayload models.Toke
 }
 
 func (h *HandlerData) HandleDetokenise(ctx context.Context, payload models.DetokenisePayload) (models.DetokeniseCardResponse, error) {
-	cardDetails, err := h.db.GetCardDetails(ctx, payload.Token)
+	cardDetails, err := h.db.GetCard(ctx, payload.Token)
 	if err != nil {
 		log.Error().Err(err).Str("token", payload.Token.String()).Msg("Failed to retrieve card details")
 		return models.DetokeniseCardResponse{}, err
