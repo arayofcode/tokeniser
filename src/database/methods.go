@@ -50,7 +50,7 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	return
 }
 
-func (dbConfig *databaseConfig) GetCardDetails(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow, err error) {
+func (dbConfig *databaseConfig) GetCard(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow, err error) {
 	log.Info().Str("token", token.String()).Msg("Retrieving card details")
 
 	var dbCard card

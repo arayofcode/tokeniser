@@ -1,12 +1,12 @@
 # Check only for .env file (For development)
 # .env will not be used in production
--include $(wildcard .env)
+include $(wildcard .env)
 
 BINARY_NAME=tokeniser
 BINARY_PATH=$(CURDIR)/bin/
 
-# DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
-# FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable&pool_max_conns=10
+FLYWAY_URL=jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
 
 .PHONY: all build run test clean dep vet format migrate-up migrate-down lint help
 
@@ -19,7 +19,7 @@ $(BINARY_PATH):
 
 run: dep build migrate-up
 	@echo "Running $(BINARY_NAME)"
-	@DB=$(DB_URL) PASSPHRASE=$(PASSPHRASE) $(BINARY_PATH)/$(BINARY_NAME)
+	@DB='$(DB_URL)' PASSPHRASE='$(PASSPHRASE)' $(BINARY_PATH)/$(BINARY_NAME)
 
 start:
 	@docker compose up --remove-orphans -d
@@ -36,9 +36,9 @@ dev:
 stop-dev:
 	@docker compose -f compose.dev.yaml stop
 
-test:
+test: lint
 	@echo "Running tests"
-	@DB=$(DB_URL) go test ./... -v -coverprofile=coverage.out
+	@DB='$(DB_URL)' PASSPHRASE='$(PASSPHRASE)' go test ./... -v -coverprofile=coverage.out
 
 clean:
 	@echo "Cleaning up"

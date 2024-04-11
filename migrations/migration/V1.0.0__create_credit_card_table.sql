@@ -2,9 +2,9 @@
 CREATE TABLE IF NOT EXISTS credit_cards (
     id SERIAL PRIMARY KEY,
     token UUID DEFAULT gen_random_uuid() NOT NULL,
-    cardholder_name VARCHAR(255) NOT NULL,
-    card_number_encrypted BYTEA NOT NULL,
-    expiry_date_encrypted BYTEA NOT NULL,
+    cardholder_name VARCHAR(255) NOT NULL CHECK (cardholder_name <> ''),
+    card_number_encrypted BYTEA NOT NULL CHECK (card_number_encrypted <> ''),
+    expiry_date_encrypted BYTEA NOT NULL CHECK (expiry_date_encrypted <> ''),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_accessed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
