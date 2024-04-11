@@ -11,7 +11,7 @@ import (
 )
 
 type databaseConfig struct {
-	DB_URL string
+	dbPool *pgxpool.Pool
 }
 
 type Database interface {
@@ -34,6 +34,6 @@ func DatabaseInit(DB_URL string) Database {
 	log.Debug().Int32("max_idle_connections", pool.Stat().MaxConns()).Msg("Connection established")
 
 	return &databaseConfig{
-		DB_URL: DB_URL,
+		dbPool: pool,
 	}
 }

@@ -15,7 +15,7 @@ services:
     environment:
       - PASSPHRASE
       - PORT
-      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&pool_max_conns=10
     networks:
       - backend-network
       - vault-network

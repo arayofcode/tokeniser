@@ -21,6 +21,9 @@ services:
     develop:
       watch:
         - action: sync+restart
+          path: main.go
+          target: /app
+        - action: sync+restart
           path: src/
           target: /app
         - action: rebuild

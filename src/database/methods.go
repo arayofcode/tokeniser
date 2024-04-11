@@ -15,15 +15,9 @@ import (
 
 func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.CreditCardDetails) (results models.InsertCardResult, err error) {
 	log.Info().Msg("Inserting card details")
-	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
-	if err != nil {
-		log.Error().Err(err).Msg("Database connection failed")
-		return results, err
-	}
-	defer conn.Close(ctx)
 
-	var dbcard insertCardResult
-	err = conn.QueryRow(ctx, `
+	var dbCard insertCardResult
+	err = dbConfig.dbPool.QueryRow(ctx, `
 		INSERT INTO credit_cards (cardholder_name, card_number_encrypted, expiry_date_encrypted) 
 		VALUES ($1, $2, $3) 
 		RETURNING id, token, created_at, updated_at`,
@@ -31,10 +25,10 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 		card.CardNumberEncrypted,
 		card.ExpiryDateEncrypted,
 	).Scan(
-		&dbcard.ID,
-		&dbcard.Token,
-		&dbcard.CreatedAt,
-		&dbcard.UpdatedAt,
+		&dbCard.ID,
+		&dbCard.Token,
+		&dbCard.CreatedAt,
+		&dbCard.UpdatedAt,
 	)
 
 	if err != nil {
@@ -43,10 +37,10 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 	}
 
 	results = models.InsertCardResult{
-		RowID:     dbcard.ID,
-		Token:     uuid.UUID(dbcard.Token.Bytes),
-		CreatedAt: dbcard.CreatedAt.Time,
-		UpdatedAt: dbcard.UpdatedAt.Time,
+		RowID:     dbCard.ID,
+		Token:     uuid.UUID(dbCard.Token.Bytes),
+		CreatedAt: dbCard.CreatedAt.Time,
+		UpdatedAt: dbCard.UpdatedAt.Time,
 	}
 
 	log.Info().
@@ -58,24 +52,18 @@ func (dbConfig *databaseConfig) InsertCard(ctx context.Context, card models.Cred
 
 func (dbConfig *databaseConfig) GetCard(ctx context.Context, token uuid.UUID) (creditCard models.CreditCardRow, err error) {
 	log.Info().Str("token", token.String()).Msg("Retrieving card details")
-	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect to database")
-		return creditCard, err
-	}
-	defer conn.Close(ctx)
 
-	var dbcard card
-	err = conn.QueryRow(ctx, "SELECT id, token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards WHERE token=$1",
+	var dbCard card
+	err = dbConfig.dbPool.QueryRow(ctx, "SELECT id, token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards WHERE token=$1",
 		token,
 	).Scan(
-		&dbcard.RowID,
-		&dbcard.Token,
-		&dbcard.CardHolderName,
-		&dbcard.CreatedAt,
-		&dbcard.UpdatedAt,
-		&dbcard.CardNumberEncrypted,
-		&dbcard.ExpiryDateEncrypted,
+		&dbCard.RowID,
+		&dbCard.Token,
+		&dbCard.CardHolderName,
+		&dbCard.CreatedAt,
+		&dbCard.UpdatedAt,
+		&dbCard.CardNumberEncrypted,
+		&dbCard.ExpiryDateEncrypted,
 	)
 
 	if err != nil {
@@ -89,13 +77,13 @@ func (dbConfig *databaseConfig) GetCard(ctx context.Context, token uuid.UUID) (c
 	}
 
 	creditCard = models.CreditCardRow{
-		RowID:               dbcard.RowID,
-		Token:               dbcard.Token.Bytes,
-		CardHolderName:      dbcard.CardHolderName.String,
-		CardNumberEncrypted: dbcard.CardNumberEncrypted,
-		ExpiryDateEncrypted: dbcard.ExpiryDateEncrypted,
-		CreatedAt:           dbcard.CreatedAt.Time,
-		UpdatedAt:           dbcard.UpdatedAt.Time,
+		RowID:               dbCard.RowID,
+		Token:               dbCard.Token.Bytes,
+		CardHolderName:      dbCard.CardHolderName.String,
+		CardNumberEncrypted: dbCard.CardNumberEncrypted,
+		ExpiryDateEncrypted: dbCard.ExpiryDateEncrypted,
+		CreatedAt:           dbCard.CreatedAt.Time,
+		UpdatedAt:           dbCard.UpdatedAt.Time,
 	}
 
 	log.Info().Str("token", token.String()).Msg("Card details found!")
@@ -104,20 +92,14 @@ func (dbConfig *databaseConfig) GetCard(ctx context.Context, token uuid.UUID) (c
 
 func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID) (deleted bool) {
 	log.Info().Str("token", token.String()).Msg("Attempting to delete card")
-	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
-	if err != nil {
-		log.Error().Err(err).Msg("Unable to connect to database for deletion")
-		return false
-	}
-	defer conn.Close(ctx)
 
-	transaction, err := conn.Begin(ctx)
+	transaction, err := dbConfig.dbPool.Begin(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to start transaction")
 		return false
 	}
 	defer func() {
-		if err := transaction.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
+		if err := transaction.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 			log.Error().Err(err).Msg("Failed to rollback transaction")
 		}
 	}()
@@ -145,13 +127,7 @@ func (dbConfig *databaseConfig) DeleteCard(ctx context.Context, token uuid.UUID)
 func (dbConfig *databaseConfig) ShowAllCards(ctx context.Context) (cards []models.CreditCardRow, err error) {
 	log.Printf("Finding all cards in DB")
 
-	conn, err := pgx.Connect(ctx, dbConfig.DB_URL)
-	if err != nil {
-		return cards, fmt.Errorf("database connection failed: %v", err)
-	}
-	defer conn.Close(ctx)
-
-	rows, err := conn.Query(ctx, "SELECT token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards")
+	rows, err := dbConfig.dbPool.Query(ctx, "SELECT token, cardholder_name, created_at, updated_at, card_number_encrypted, expiry_date_encrypted FROM credit_cards")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error while querying: %v\n", err)
 		return cards, fmt.Errorf("ShowAllCards query failed: %v", err)
