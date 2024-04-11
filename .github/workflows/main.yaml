@@ -27,6 +27,21 @@ jobs:
 
   test:
     runs-on: self-hosted
+    services:
+      postgres:
+        image: postgres:16.2-alpine3.19
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mydb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -36,14 +51,41 @@ jobs:
         with:
           go-version: '^1.22'
 
-      - name: Checking directory
-        run: ls
+      - name: Run migrations
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/migrations/migration:/migrations \
+            --network host \
+            flyway/flyway:10.10 \
+            -user=postgres \
+            -passwords=postgres \
+            -url=jdbc:postgresql://localhost:5432/mydb \
+            -locations=filesystem:/migrations \
+            migrate
 
       - name: Run tests
         run: make test
+        env:
+          DB: postgres://postgres:postgres@localhost:5432/mydb?sslmode=disable&pool_max_conns=10
+          PASSPHRASE: ci-cd-Passphrase
 
   lint:
     runs-on: self-hosted
+    services:
+      postgres:
+        image: postgres:16.2-alpine3.19
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mydb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -53,5 +95,19 @@ jobs:
         with:
           go-version: '^1.22'
 
+      - name: Run migrations
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/migrations/migration:/migrations \
+            --network host \
+            flyway/flyway:10.10 \
+            -user=postgres \
+            -passwords=postgres \
+            -url=jdbc:postgresql://localhost:5432/mydb \
+            -locations=filesystem:/migrations \
+            migrate
+
       - name: Run lint
         run: make lint
+        env:
+          DB: postgres://postgres:postgres@localhost:5432/mydb?sslmode=disable&pool_max_conns=10
