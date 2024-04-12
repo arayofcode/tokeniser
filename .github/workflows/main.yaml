@@ -7,9 +7,11 @@ on:
 jobs:
   test:
     runs-on: self-hosted
+    environment: production
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
-      
+      - name: Run postgres
+        run: docker compose up db -d
       - name: Run tests
         run: make test
