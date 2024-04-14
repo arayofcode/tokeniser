@@ -7,7 +7,7 @@ COPY Makefile .
 RUN make dep
 COPY main.go .
 COPY src/ ./src/
-RUN make
+RUN make build
 
 FROM gcr.io/distroless/static-debian12
 
