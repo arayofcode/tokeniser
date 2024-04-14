@@ -33,8 +33,8 @@ start:
 	$(call print-target)
 	@docker compose up --remove-orphans -d
 
-.PHONY: start-clean
-start-clean:
+.PHONY: start-build
+start-build:
 	$(call print-target)
 	@docker compose up --build --remove-orphans --force-recreate -d 
 
@@ -48,6 +48,11 @@ dev:
 	$(call print-target)
 	@docker compose -f compose.dev.yaml up -d
 
+.PHONY: dev-build
+dev-build:
+	$(call print-target)
+	@docker compose -f compose.dev.yaml up --build -d
+
 .PHONY: dev-watch
 dev-watch:
 	$(call print-target)
@@ -59,7 +64,7 @@ stop-dev:
 	@docker compose -f compose.dev.yaml stop
 
 .PHONY: test
-test: lint
+test: lint migrate-up
 	$(call print-target)
 	@echo "Running tests"
 	@go test ./... -v -coverprofile=coverage.out
@@ -114,9 +119,10 @@ help:
 	@echo "Available commands:\n"
 	@echo "Following commands use docker compose:"
 	@echo "  start         Start the application."
-	@echo "  start-clean   Rebuild all images and start the application."
+	@echo "  start-build   Rebuild all images and start the application."
 	@echo "  stop		   Stop the running containers for production app."
 	@echo "  dev		   Run the local development setup."
+	@echo "  dev-build	   Run the local development setup by rebuilding containers."
 	@echo "  dev-watch	   Run the local development setup. Allows hot reloading."
 	@echo "  stop-dev	   Stop the local development setup."
 

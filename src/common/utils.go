@@ -9,11 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arayofcode/tokeniser/src/models"
 	"github.com/caarlos0/env/v10"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 var config *models.Config

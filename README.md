@@ -13,7 +13,7 @@ POSTGRES_PASSWORD=my-secret-password
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=my-database-name
-PORT=8080
+APP_PORT=8080
 ```
 
 You can rename the `.env.example` file to `.env` and use it as well. However, please know that the default credentials aren't very secure, and you'll put yourself at risk.
@@ -54,7 +54,7 @@ $ make start
 
 To get a fresh start, use the following command:
 ```console
-$ make start-clean
+$ make start-build
 ```
 
 Note: This will not refresh your database. I have not provided the commands for dropping the DB for now, but might do it later.
@@ -73,7 +73,7 @@ User --> API --> Handler --> Database Handler -> Database
 ## Next steps:
 - Use docker compose profiles for setting up environments
 - Tests and Makefile are broken given there's a change in network of database. 
-- Setup dev, testing, and prod all using make (prod done, use `make start` or `make start-clean` for fresh build)
+- Setup dev, testing, and prod all using make (prod done, use `make start` or `make start-build` for fresh build)
 - Deployment of the API
 - Improve performance. /all API takes 7 seconds for 15 cards. Setup concurrency.
 - Better way for in-memory storage of sensitive information. Check this library: https://github.com/awnumar/memguard

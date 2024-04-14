@@ -11,11 +11,15 @@ services:
       flyway-dev:
         condition: service_completed_successfully
     ports:
-      - "${HOST}:${PORT}:${PORT}"
+      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
     environment:
       - PASSPHRASE
-      - PORT
-      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&pool_max_conns=10
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DB
+      - APP_PORT
     network_mode: host
     command: go run main.go
     develop:
