@@ -14,7 +14,7 @@ $(BINARY_PATH):
 	@mkdir -p $@
 
 .PHONY: build
-build: clean dep $(BINARY_PATH)
+build: clean dep format lint test $(BINARY_PATH)
 	$(call print-target)
 	@echo "Building $(BINARY_NAME)"
 	@for os in $(PLATFORMS); do \
@@ -23,7 +23,7 @@ build: clean dep $(BINARY_PATH)
 	done
 
 .PHONY: run
-run: dep build migrate-up
+run: build migrate-up
 	$(call print-target)
 	@echo "Running $(BINARY_NAME)"
 	@$(BINARY_PATH)/$(BINARY_NAME)-darwin || $(BINARY_PATH)/$(BINARY_NAME)-linux || $(BINARY_PATH)/$(BINARY_NAME)-windows
@@ -93,6 +93,8 @@ format: vet
 .PHONY: migrate-up
 migrate-up:
 	$(call print-target)
+	@echo "Setting up database"
+	@docker compose -f compose.dev.yaml up db-dev -d
 	@echo "Running latest database migrations"
 	@flyway -url=$(FLYWAY_URL) -user=$(POSTGRES_USER) -password=$(POSTGRES_PASSWORD) -locations=migrations/migration migrate
 
@@ -102,7 +104,7 @@ migrate-down:
 	@echo "Need to find a workaround for this given Flyway Community doesn't provide this."
 
 .PHONY: lint
-lint:
+lint: format
 	$(call print-target)
 	@echo "Running linters..."
 	@golangci-lint run ./...
