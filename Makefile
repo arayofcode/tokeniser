@@ -99,6 +99,13 @@ format: vet
 migrate-up:
 	$(call print-target)
 	@echo "Setting up database"
+	@docker compose -f compose.yaml up db -d
+	@echo "Running latest database migrations"
+	@flyway -url=$(FLYWAY_URL) -user=$(POSTGRES_USER) -password=$(POSTGRES_PASSWORD) -locations=migrations/migration migrate
+
+migrate-up-dev:
+	$(call print-target)
+	@echo "Setting up database"
 	@docker compose -f compose.dev.yaml up db-dev -d
 	@echo "Running latest database migrations"
 	@flyway -url=$(FLYWAY_URL) -user=$(POSTGRES_USER) -password=$(POSTGRES_PASSWORD) -locations=migrations/migration migrate
