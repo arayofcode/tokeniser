@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
     env:
       PASSPHRASE: ${{secrets.PASSPHRASE}}
       POSTGRES_USER: ${{secrets.POSTGRES_USER}}
