@@ -2,17 +2,19 @@ package common
 
 import (
 	"encoding/json"
-	"os"
+	"fmt"
 	"regexp"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/arayofcode/tokeniser/src/models"
+	"github.com/caarlos0/env/v10"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/arayofcode/tokeniser/src/models"
 )
 
 var config *models.Config
@@ -29,35 +31,12 @@ func PrettyPrint(data interface{}) string {
 }
 
 func loadConfig() (cfg models.Config) {
-	cfg.DB = os.Getenv("DB")
-	cfg.Passphrase = os.Getenv("PASSPHRASE")
-	return
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal().Msgf("%+v\n", err)
+	}
+	cfg.DB = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&pool_max_conns=10", cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresDB)
+	return cfg
 }
-
-// func loadConfig() models.Config {
-// 	configPath := os.Getenv("CONFIG_PATH")
-// 	if configPath == "" {
-// 		log.Fatal().Msg("CONFIG_PATH environment variable is not set")
-// 	}
-//
-// 	jsonFile, err := os.Open(configPath)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("Error opening config file")
-// 	}
-// 	defer jsonFile.Close()
-//
-// 	byteValue, err := io.ReadAll(jsonFile)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("Error reading config file")
-// 	}
-//
-// 	var cfg models.Config
-// 	if err := json.Unmarshal(byteValue, &cfg); err != nil {
-// 		log.Fatal().Err(err).Msg("Error unmarshalling config")
-// 	}
-//
-// 	return cfg
-// }
 
 func getConfig() models.Config {
 	once.Do(func() {
@@ -73,6 +52,10 @@ func GetDbURL() string {
 
 func GetPassphrase() string {
 	return getConfig().Passphrase
+}
+
+func GetPort() string {
+	return getConfig().AppPort
 }
 
 var ExpiryDateMMYY validator.Func = func(fl validator.FieldLevel) bool {

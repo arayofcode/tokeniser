@@ -36,7 +36,7 @@ func (rc *routerConfig) setupRoutes() {
 }
 
 func (rc *routerConfig) StartAPI() {
-	port := os.Getenv("PORT")
+	port := common.GetPort()
 	rc.router.LoadHTMLGlob("src/router/templates/*")
 	rc.router.Static("/static", "src/router/static")
 	rc.setupRoutes()
