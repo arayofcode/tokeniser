@@ -19,6 +19,6 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v4
       - name: Run postgres container
-        run: docker compose up db -f
+        run: docker compose up db -d
       - name: Run tests
         run: make test
