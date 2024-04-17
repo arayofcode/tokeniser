@@ -67,7 +67,12 @@ stop-dev:
 test: lint migrate-up
 	$(call print-target)
 	@echo "Running tests"
-	@go test ./... -v -coverprofile=coverage.out
+	@PASSPHRASE=$(PASSPHRASE) POSTGRES_USER=$(POSTGRES_USER) POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) POSTGRES_HOST=$(POSTGRES_HOST) POSTGRES_PORT=$(POSTGRES_PORT) POSTGRES_DB=$(POSTGRES_DB) APP_PORT=$(APP_PORT) go test ./... -v -coverprofile=coverage.out
+
+test-dev: lint migrate-up-dev
+	$(call print-target)
+	@echo "Running tests"
+	@PASSPHRASE=$(PASSPHRASE) POSTGRES_USER=$(POSTGRES_USER) POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) POSTGRES_HOST=$(POSTGRES_HOST) POSTGRES_PORT=$(POSTGRES_PORT) POSTGRES_DB=$(POSTGRES_DB) APP_PORT=$(APP_PORT) go test ./... -v -coverprofile=coverage.out
 
 .PHONY: clean
 clean:

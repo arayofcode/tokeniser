@@ -20,9 +20,6 @@ services:
       - POSTGRES_PORT
       - POSTGRES_DB
       - APP_PORT
-    networks:
-      - backend-network
-      - vault-network
 
   db:
     image: postgres:16.2-alpine3.19
@@ -38,9 +35,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - vault-network
-      - operations-management
     expose:
       - 5432
 
@@ -57,16 +51,7 @@ services:
       FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
-    networks:
-      - operations-management
     command: migrate
 
 volumes:
   pgdata:
-
-networks:
-  vault-network:
-    internal: true
-  backend-network:
-  operations-management: # To separate operational traffic from external traffic
-    internal: true

@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     env:
       PASSPHRASE: ${{secrets.PASSPHRASE}}
       POSTGRES_USER: ${{secrets.POSTGRES_USER}}
@@ -16,15 +16,9 @@ jobs:
       POSTGRES_DB: ${{secrets.POSTGRES_DB}}
       APP_PORT: ${{secrets.APP_PORT}}
     steps:
-      - name: Setup Go environment
-        uses: actions/setup-go@v5.0.0
-        with:
-          go-version: 1.22
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.54
       - name: Checkout branch
         uses: actions/checkout@v4
+      - name: Run postgres container
+        run: docker compose up db
       - name: Run tests
         run: make test

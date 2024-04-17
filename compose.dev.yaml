@@ -20,7 +20,6 @@ services:
       - POSTGRES_PORT
       - POSTGRES_DB
       - APP_PORT
-    network_mode: host
     command: go run main.go
     develop:
       watch:
@@ -55,7 +54,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    network_mode: host
     ports:
       - "${POSTGRES_HOST}:${POSTGRES_PORT}:${POSTGRES_PORT}"
 
@@ -73,7 +71,6 @@ services:
       FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
-    network_mode: host
     command: migrate
     develop:
       watch:
