@@ -1,9 +1,29 @@
 ## ----------------------------------------------------------------------
 ## Here are the commands you can use for running, testing and developing
 ## the application. Please note that golangci-lint and flyway CLI need to
-## be installed by you until I create an init script. Refer to docs.
+## be installed by the user manually. Refer to their docs.
 ## PS: I don't use .PHONY because it's not needed.
 ## ----------------------------------------------------------------------
+start:		## Run application. Reuse any existing containers.
+	$(call print-target)
+	@echo "Running application using docker compose. Reusing any existing containers"
+	@docker compose -f compose.yaml up --no-recreate -d
+
+start-clean:	## Rebuild containers and run the application.
+	$(call print-target)
+	@echo "Running application using docker compose and rebuilding containers"
+	@docker compose -f compose.yaml up --build -d
+
+stop:		## Run any existing instance of the application.
+	$(call print-target)
+	@echo "Stopping any instances of the application running"
+	@docker compose -f compose.yaml stop
+
+dev:		## Run application in development mode.
+# || true suppresses make: *** [dev] Error 130
+	$(call print-target)
+	@echo "Running application in dev environment"
+	@docker compose up --watch || true
 
 build:		## Build binary.
 build: clean $(BINARY_PATH) install
@@ -14,13 +34,13 @@ build: clean $(BINARY_PATH) install
 		GOARCH=$(ARCH) GOOS=$$os go build -o $(BINARY_PATH)/$(BINARY_NAME)-$$os; \
 	done
 
-run:		## Run the application
+run:		## Run the application.
 run: build
 	$(call print-target)
 	@echo "Running $(BINARY_NAME)"
 	@$(BINARY_PATH)/$(BINARY_NAME)-darwin || $(BINARY_PATH)/$(BINARY_NAME)-linux || $(BINARY_PATH)/$(BINARY_NAME)-windows
 
-test:		## Run tests (DB should be up and running)
+test:		## Run tests (DB should be up and running).
 test: clean install format lint
 	$(call print-target)
 	@echo "Running tests"
@@ -43,12 +63,12 @@ format:		## Format code.
 	@echo "Formatting code"
 	@go fmt ./...
 
-lint:		## Lint using golangci-lint (Need to install it).
+lint:		## Lint using golangci-lint.
 	$(call print-target)
 	@echo "Running linters..."
 	@golangci-lint run ./...
 
-migrate-up:	## Run database migrations using Flyway (Need to install it).
+migrate-up:	## Run database migrations using Flyway.
 	$(call print-target)
 	@echo "Running latest database migrations"
 	@flyway -url=$(FLYWAY_URL) -user=$(POSTGRES_USER) -password=$(POSTGRES_PASSWORD) -locations=migrations/migration migrate

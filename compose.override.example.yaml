@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    networks:
+      - backend-dev
+      - database-dev
+    develop:
+      watch:
+        - path: main.go
+          action: sync+restart
+          target: /build
+        - path: src/
+          action: sync+restart
+          target: /build
+        - path: go.sum
+          action: rebuild
+        - path: go.mod
+          action: rebuild
+        - path: Makefile
+          action: rebuild
+        - path: compose.yaml
+          action: rebuild
+        - path: compose.override.yaml
+          action: rebuild
+
+  db:
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - database-dev
+      - operations-dev
+  
+  flyway:
+    networks:
+      - operations-dev
+
+volumes:
+  pgdata_dev:
+
+networks:
+  database-dev:
+  backend-dev:
+  operations-dev:
