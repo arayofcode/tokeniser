@@ -1,12 +1,14 @@
 FROM golang:1.22-alpine as build
 
 WORKDIR /build
+
 RUN apk add make golangci-lint
+
 COPY go.* .
 COPY Makefile .
-RUN make install
 COPY main.go .
 COPY src/ ./src/
+
 RUN make build
 
 FROM gcr.io/distroless/static-debian12
