@@ -2,7 +2,8 @@
 .idea/
 .vscode/
 bin/
-*.json
-!tokeniser.postman_collection.json
 *.out
 *.env
+compose.override.yaml
+*.json
+!tokeniser.postman_collection.json

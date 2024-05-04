@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             console.log(requestData)
 
-            fetch('/forms/tokenise', {
+            fetch('/v1/tokens', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

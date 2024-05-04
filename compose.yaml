@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -16,10 +16,13 @@ services:
       - PASSPHRASE
       - POSTGRES_USER
       - POSTGRES_PASSWORD
-      - POSTGRES_HOST
+      - POSTGRES_HOST=db
       - POSTGRES_PORT
       - POSTGRES_DB
       - APP_PORT
+    networks:
+      - backend
+      - database
 
   db:
     image: postgres:16.2-alpine3.19
@@ -37,9 +40,12 @@ services:
       retries: 5
     expose:
       - 5432
+    networks:
+      - database
+      - operations
 
   flyway:
-    image: flyway/flyway:10.10
+    image: flyway/flyway:10.11
     volumes:
       - ./migrations/migration:/migrations
     depends_on:
@@ -52,6 +58,15 @@ services:
       FLYWAY_DRIVER: org.postgresql.Driver
       FLYWAY_LOCATIONS: filesystem:/migrations
     command: migrate
+    networks:
+      - operations
 
 volumes:
   pgdata:
+
+networks:
+  backend:
+  operations:
+    internal: true
+  database:
+    internal: true
