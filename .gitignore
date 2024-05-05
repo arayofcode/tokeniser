@@ -7,3 +7,5 @@ bin/
 compose.override.yaml
 *.json
 !tokeniser.postman_collection.json
+.test/
+*.old
