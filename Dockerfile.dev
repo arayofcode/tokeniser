@@ -1,9 +1,0 @@
-FROM golang:1.22-alpine
-
-WORKDIR /app
-RUN apk add make golangci-lint
-COPY go.* .
-COPY Makefile .
-COPY main.go .
-COPY src/ ./src/
-RUN make dep

@@ -39,11 +39,18 @@ In some future update, I'll setup a bash script that runs at startup, and will s
 
 ### Local Development
 
-Once the environment variables or `.env` file are set up, run the following command:
+Setup the environment variables by either following the steps in [this section](#how-to-use) or doing so manually. Copy the `compose.override.example` file to `compose.override.yaml` before proceeding:
+```console
+$ cp compose.override.example compose.override.yaml
+```
+
+Now, run the following command:
 
 ```console
 $ make dev
 ```
+
+This will start a local development instance of the application with hot-reloading enabled. Ensure your docker compose version is later than `2.22.0` for this to work given I'm using compose watch for the reloading.
 
 ### Running the application
 
@@ -57,7 +64,7 @@ To get a fresh start, use the following command:
 $ make start-build
 ```
 
-Note: This will not refresh your database. I have not provided the commands for dropping the DB for now, but might do it later.
+Note: This will not refresh your database. I have not provided the commands for dropping the DB. If you want to, feel free to delete the docker volume associated with the database, and you're good to go. 
 
 ## Workflow
 User --> API --> Handler --> Database Handler -> Database
@@ -132,6 +139,7 @@ I'm not sure if I'd actually use GCP to deploy it (because it costs money :P) bu
 - [Creating a Postman Collection](https://youtu.be/NlrPjuXEaZ8?si=MAPg9KVYG5PogJmu)
 - [Docker and Postgres with Persistent Data](https://youtu.be/G3gnMSyX-XM?si=ycVqtlaGYHmN7bjg)
 - [Docker Networking](https://www.youtube.com/watch?v=OU6xOM0SE4o&ab_channel=HusseinNasser)
+- [Why not dockerise your databases (From 2016, things have changed, but good read)](https://patrobinson.github.io/2016/11/07/thou-shalt-not-run-a-database-inside-a-container/)
 
 ## Packages used during local development
 
