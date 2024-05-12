@@ -14,7 +14,12 @@ FROM base as build
 RUN make build
 
 FROM base as development
-CMD [ "go", "run", "/build/main.go" ]
+WORKDIR /build
+CMD [ "go", "run", "main.go" ]
+
+FROM base as test
+WORKDIR /build
+CMD ["make", "test"]
 
 FROM gcr.io/distroless/static-debian12 as production
 
