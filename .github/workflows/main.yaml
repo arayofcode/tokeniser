@@ -1,22 +1,55 @@
-name: CI
+name: CI-new
 
 on:
   push:
     branches: [main]
 
 jobs:
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.58
+    
   test:
     runs-on: self-hosted
     env:
-      PASSPHRASE: ${{secrets.PASSPHRASE}}
-      POSTGRES_USER: ${{secrets.POSTGRES_USER}}
-      POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
-      POSTGRES_HOST: ${{secrets.POSTGRES_HOST}}
-      POSTGRES_PORT: ${{secrets.POSTGRES_PORT}}
-      POSTGRES_DB: ${{secrets.POSTGRES_DB}}
-      APP_PORT: ${{secrets.APP_PORT}}
+      PASSPHRASE: test_passphrase
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: test_db
+      APP_PORT: 8000
+      FLYWAY_USER: test_user
+      FLYWAY_PASSWORD: test_password
+      FLYWAY_URL: jdbc:postgresql://localhost:5432/test_db
+      FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
+      FLYWAY_DRIVER: org.postgresql.Driver
+      FLYWAY_LOCATIONS: filesystem:./migrations/migration
+    services:
+      db:
+        image: postgres:16.2-alpine3.19
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
-      - name: Run tests
-        run: make test-ci
+      - name: Running database migrations
+        uses: flyway migrate
+      - name: Running Tests
+        run: make test
