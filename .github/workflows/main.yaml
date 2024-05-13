@@ -18,7 +18,7 @@ jobs:
           version: v1.58
     
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       PASSPHRASE: test_passphrase
       POSTGRES_USER: test_user
