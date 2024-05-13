@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: test
-    command: make test
+    command: make test && docker compose -f compose.test.yaml logs
     depends_on:
       db:
         condition: service_healthy
