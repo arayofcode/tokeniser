@@ -50,6 +50,6 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v4
       - name: Running database migrations
-        uses: flyway migrate
+        run: flyway migrate
       - name: Running Tests
         run: make test
