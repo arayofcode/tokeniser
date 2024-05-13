@@ -18,7 +18,7 @@ jobs:
           version: v1.58
     
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       PASSPHRASE: test_passphrase
       POSTGRES_USER: test_user
@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
+      - name: Installing flyway
+        run: wget -qO- https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz | tar -xvz && sudo ln -s `pwd`/flyway-10.12.0/flyway /usr/local/bin 
       - name: Running database migrations
         run: flyway migrate
       - name: Running Tests
