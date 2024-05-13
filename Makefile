@@ -41,7 +41,7 @@ run: build
 	@$(BINARY_PATH)/$(BINARY_NAME)-darwin || $(BINARY_PATH)/$(BINARY_NAME)-linux || $(BINARY_PATH)/$(BINARY_NAME)-windows
 
 test:		## Run tests (DB should be up and running).
-test: clean install format lint
+test: clean install format
 	$(call print-target)
 	@echo "Running tests"
 	@go test ./... -v -coverprofile=coverage.out
