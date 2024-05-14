@@ -27,12 +27,6 @@ jobs:
       POSTGRES_PORT: 5432
       POSTGRES_DB: test_db
       APP_PORT: 8000
-      FLYWAY_USER: test_user
-      FLYWAY_PASSWORD: test_password
-      FLYWAY_URL: jdbc:postgresql://localhost:5432/test_db
-      FLYWAY_POSTGRESQL_TRANSACTIONAL_LOCK: false
-      FLYWAY_DRIVER: org.postgresql.Driver
-      FLYWAY_LOCATIONS: filesystem:./migrations/migration
     services:
       db:
         image: postgres:16.2-alpine3.19
@@ -51,6 +45,13 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v4
       - name: Running database migrations
-        run:  docker run --rm flyway/flyway:10.13 migrate
+        run:  docker run -v "migrations/migration:/migrations" --rm flyway/flyway:10.13 \
+              -user="test_user" \
+              -password="test_password" \
+              -url="jdbc:postgresql://localhost:5432/test_db" \
+              -driver="org.postgresql.Driver" \
+              -postgresql.transactional.lock=false \
+              -locations="filesystem:/migrations" \
+              migrate
       - name: Running Tests
         run: make test
