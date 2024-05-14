@@ -46,11 +46,6 @@ test: clean install format
 	@echo "Running tests"
 	@go test ./... -v -coverprofile=coverage.out
 
-test-ci:	## Run tests in CI using docker compose file
-	$(call print-target)
-	@echo "Running tests"
-	@docker compose -f compose.test.yaml up app --build --remove-orphans
-
 install:	## Install dependencies.
 	$(call print-target)
 	@echo "Verifying and downloading dependencies"
