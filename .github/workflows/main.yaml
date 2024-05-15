@@ -46,6 +46,6 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v4
       - name: Running database migrations
-        run:  docker run --rm --network host -v $(pwd)/migrations/migration:/flyway/sql flyway/flyway -url=jdbc:postgresql://db:5432/test_db -driver=org.postgresql.Driver -postgresql.transactional.lock=false -user=test_user -password=test_password migrate
+        run:  docker run --rm --network host -v $(pwd)/migrations/migration:/flyway/sql flyway/flyway -url=jdbc:postgresql://localhost:5432/test_db -driver=org.postgresql.Driver -postgresql.transactional.lock=false -user=test_user -password=test_password migrate
       - name: Running Tests
         run: make test
