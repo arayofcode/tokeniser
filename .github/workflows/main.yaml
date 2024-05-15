@@ -19,6 +19,7 @@ jobs:
     
   test:
     runs-on: self-hosted
+    container: golang:1.22-alpine
     env:
       PASSPHRASE: test_passphrase
       POSTGRES_USER: test_user
