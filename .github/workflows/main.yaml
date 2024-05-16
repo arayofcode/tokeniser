@@ -3,6 +3,14 @@ name: CI-new
 on:
   push:
     branches: [main, 23-setup-cicd-pipeline-for-tokeniser-app]
+    paths:
+      - "main.go"
+      - "go.*"
+      - "Makefile"
+      - "*.yaml"
+      - "src/**"
+      - Dockerfile
+      - "migrations/**"
 
 jobs:
   lint:
