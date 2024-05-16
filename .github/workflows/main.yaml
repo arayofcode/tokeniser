@@ -2,7 +2,7 @@ name: CI-new
 
 on:
   push:
-    branches: [main]
+    branches: [main, 23-setup-cicd-pipeline-for-tokeniser-app]
 
 jobs:
   lint:
