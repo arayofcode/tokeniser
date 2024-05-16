@@ -46,7 +46,7 @@ services:
       - operations
 
   flyway:
-    image: flyway/flyway:10.11
+    image: flyway/flyway:10.13
     volumes:
       - ./migrations/migration:/migrations
     depends_on:
