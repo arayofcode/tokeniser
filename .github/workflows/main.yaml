@@ -2,7 +2,6 @@ name: Test-Build-Publish
 
 on:
   workflow_dispatch:
-    inputs: ${{ null }}
   push:
     branches: [main]
     paths:
