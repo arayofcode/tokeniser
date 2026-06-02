@@ -1,6 +1,5 @@
 .DS_Store
 .idea/
-.vscode/
 bin/
 *.out
 *.env
@@ -9,3 +8,5 @@ compose.override.yaml
 !tokeniser.postman_collection.json
 .test/
 *.old
+config.bat
+node_modules
